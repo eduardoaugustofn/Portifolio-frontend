@@ -4,239 +4,138 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Eduardo Augusto | Portfólio</title>
-  <style>
-    * { box-sizing: border-box; }
-    html, body {
-      margin: 0;
-      height: 100%;
-      background: #0a0a0a;
-      color: #33ff66;
-      font-family: "Courier New", Courier, monospace;
-      font-size: 16px;
-    }
-    #terminal {
-      padding: 16px;
-      height: 100%;
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-    .linha { margin: 4px 0; white-space: pre-wrap; word-break: break-word; }
-    .dim { color: #1f9e45; }
-    .destaque { color: #b6ffcb; font-weight: bold; }
-    .erro { color: #ff5f5f; }
-    a { color: #7dffa8; }
-    img { max-width: 100%; border: 1px solid #1f9e45; margin-top: 6px; }
-    .bloco { margin: 10px 0 14px 0; }
-    form { display: flex; margin-top: 8px; }
-    .prompt { white-space: nowrap; color: #7dffa8; padding-top: 6px; }
-    #entrada {
-      flex: 1;
-      background: transparent;
-      border: none;
-      outline: none;
-      color: #33ff66;
-      font-family: inherit;
-      font-size: 16px;
-      padding: 6px 0 6px 6px;
-      min-width: 0;
-    }
-    .cursor {
-      display: inline-block;
-      width: 9px;
-      height: 1em;
-      background: #33ff66;
-      animation: piscar 1s steps(1) infinite;
-      vertical-align: text-bottom;
-    }
-    @keyframes piscar { 50% { opacity: 0; } }
-  </style>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div id="terminal">
-    <div class="linha dim">Portfólio de Eduardo Augusto Freitas Nogueira</div>
-    <div class="linha dim">Digite <span class="destaque">ajuda</span> para ver os comandos.</div>
-    <div id="saida"></div>
-    <form id="formulario" autocomplete="off">
-      <span class="prompt">mestre@portfolio:~$</span>
-      <input id="entrada" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" autofocus>
-    </form>
-  </div>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="#home" class="brand">Eduardo Augusto</a>
+      <button id="nav-toggle" class="nav-toggle" aria-label="Abrir menu" aria-expanded="false">☰</button>
+      <nav id="main-nav" class="main-nav" aria-label="Navegação principal">
+        <a href="#home" class="nav-link">Início</a>
+        <a href="#sobre" class="nav-link">Sobre</a>
+        <a href="#projetos" class="nav-link">Projetos</a>
+        <a href="#experiencias" class="nav-link">Experiências</a>
+        <a href="#contato" class="nav-link">Contato</a>
+      </nav>
+    </div>
+  </header>
 
-  <script>
-    // Troque pela URL do seu back-end no Render (sem barra no final).
-    const API = "https://SEU-BACKEND.onrender.com";
+  <main>
+    <section id="home" class="hero">
+      <div class="container">
+        <h1>Olá — eu sou Eduardo Augusto.</h1>
+        <p class="lead">Desenvolvedor Front‑End / Estudante de Ciência da Computação na PUC Minas. Crio interfaces acessíveis e projetos web responsivos.</p>
+        <a class="cta" href="#projetos">Ver Projetos</a>
+      </div>
+    </section>
 
-    const saida = document.getElementById("saida");
-    const entrada = document.getElementById("entrada");
-    const formulario = document.getElementById("formulario");
-    const terminal = document.getElementById("terminal");
+    <section id="sobre" class="container section">
+      <div class="section-header">
+        <h2>Sobre Mim</h2>
+        <div class="lang-toggle">
+          <button data-lang="pt" class="active">PT</button>
+          <button data-lang="en">EN</button>
+        </div>
+      </div>
 
-    function linha(texto, classe) {
-      const div = document.createElement("div");
-      div.className = "linha " + (classe || "");
-      div.textContent = texto;
-      saida.appendChild(div);
-      rolar();
-      return div;
-    }
+      <div class="about">
+        <article class="about-text" data-lang="pt">
+          <h3>Apresentação (PT)</h3>
+          <p>Sou estudante de Ciência da Computação na PUC Minas, com interesse em desenvolvimento web, interfaces responsivas, acessibilidade e boas práticas de engenharia de software. Atuo com HTML, CSS, JavaScript e frameworks modernos, buscando entregar experiências performáticas e usáveis em dispositivos móveis e desktop.</p>
+          <p class="highlight">Formação: Bacharel em Ciência da Computação — PUC Minas.</p>
+          <p>Áreas de atuação: Front‑End, UI/UX, aplicações web responsivas, otimização e testes.</p>
+          <p>Objetivo profissional: crescer como desenvolvedor front‑end, contribuir em projetos que impactem usuários reais e participar de projetos open source.</p>
+        </article>
 
-    function bloco() {
-      const div = document.createElement("div");
-      div.className = "bloco";
-      saida.appendChild(div);
-      rolar();
-      return div;
-    }
+        <article class="about-text" data-lang="en" hidden>
+          <h3>About (EN)</h3>
+          <p>I am a Computer Science student at PUC Minas with interests in web development, responsive interfaces, accessibility and software engineering best practices. I work with HTML, CSS, JavaScript and modern frameworks, aiming to deliver performant and usable experiences on mobile and desktop devices.</p>
+          <p class="highlight">Education: B.Sc. in Computer Science — PUC Minas.</p>
+          <p>Focus areas: Front‑End, UI/UX, responsive web applications, performance and testing.</p>
+          <p>Professional goal: grow as a front‑end developer, contribute to impactful projects and participate in open source initiatives.</p>
+        </article>
+      </div>
+    </section>
 
-    function rolar() {
-      terminal.scrollTop = terminal.scrollHeight;
-    }
+    <section id="projetos" class="container section">
+      <div class="section-header"><h2>Projetos</h2><p class="muted">Linha do tempo — do mais antigo ao mais recente</p></div>
+      <ol class="timeline">
+        <li class="timeline-item">
+          <div class="time-meta">2020</div>
+          <div class="card">
+            <h3 class="project-title">Projeto Exemplo A</h3>
+            <p class="project-desc">Plataforma de demonstração com autenticação e dashboard simples.</p>
+            <p class="project-tech"><strong>Tecnologias:</strong> HTML, CSS, JavaScript</p>
+            <p><a class="repo-link" href="https://github.com/eduardoaugustofn/exemplo-a" target="_blank" rel="noopener">Repositório no GitHub</a></p>
+            <div class="media-wrap"><img src="https://via.placeholder.com/600x340?text=Projeto+A" alt="Demonstração do Projeto A"></div>
+          </div>
+        </li>
 
-    function link(url, texto) {
-      const a = document.createElement("a");
-      a.href = url;
-      a.target = "_blank";
-      a.rel = "noopener";
-      a.textContent = texto || url;
-      return a;
-    }
+        <li class="timeline-item">
+          <div class="time-meta">2021</div>
+          <div class="card">
+            <h3 class="project-title">Projeto Exemplo B</h3>
+            <p class="project-desc">Aplicação SPA com rotas, consumo de API e componentes reutilizáveis.</p>
+            <p class="project-tech"><strong>Tecnologias:</strong> React, CSS Modules, Axios</p>
+            <p><a class="repo-link" href="https://github.com/eduardoaugustofn/exemplo-b" target="_blank" rel="noopener">Repositório no GitHub</a></p>
+            <div class="media-wrap"><img src="https://via.placeholder.com/600x340?text=Projeto+B" alt="Demonstração do Projeto B"></div>
+          </div>
+        </li>
 
-    async function buscar(rota) {
-      const resposta = await fetch(API + rota);
-      if (!resposta.ok) throw new Error("HTTP " + resposta.status);
-      return resposta.json();
-    }
+        <li class="timeline-item">
+          <div class="time-meta">2023</div>
+          <div class="card">
+            <h3 class="project-title">Portfólio (este site)</h3>
+            <p class="project-desc">Site pessoal em HTML/CSS/JS com foco em responsividade e acessibilidade.</p>
+            <p class="project-tech"><strong>Tecnologias:</strong> HTML, CSS, JavaScript</p>
+            <p><a class="repo-link" href="https://github.com/eduardoaugustofn/Portifolio-frontend" target="_blank" rel="noopener">Repositório no GitHub</a></p>
+            <div class="media-wrap"><img src="https://via.placeholder.com/600x340?text=Portf%C3%B3lio" alt="Demonstração do portfólio"></div>
+          </div>
+        </li>
+      </ol>
+    </section>
 
-    const comandos = {
-      ajuda() {
-        linha("Comandos disponíveis:", "destaque");
-        linha("  sobre          apresentação");
-        linha("  projetos       linha do tempo de projetos");
-        linha("  experiencias   experiências profissionais");
-        linha("  certificados   certificações");
-        linha("  contato        formas de contato");
-        linha("  limpar         limpa a tela");
-      },
+    <section id="experiencias" class="container section">
+      <div class="section-header"><h2>Experiências</h2></div>
+      <ul class="experiences">
+        <li class="experience-item">
+          <h4>Empresa X — Estagiário Front‑end</h4>
+          <p class="period">Mar/2021 — Dez/2021</p>
+          <p>Atuei no desenvolvimento de interfaces, componentes reutilizáveis e correção de bugs. Colaborei com uma equipe ágil e participei do processo de revisão de código.</p>
+        </li>
 
-      async sobre() {
-        const d = await buscar("/sobre");
-        const b = bloco();
-        b.appendChild(textoDestaque("[PT]"));
-        b.appendChild(textoComum(d.pt));
-        b.appendChild(textoDestaque("[EN]"));
-        b.appendChild(textoComum(d.en));
-        b.appendChild(textoDestaque("[Interesses]"));
-        b.appendChild(textoComum(d.interesses.join(", ")));
-        b.appendChild(textoDestaque("[Objetivo]"));
-        b.appendChild(textoComum(d.objetivo));
-      },
+        <li class="experience-item">
+          <h4>Projeto Open Source Y — Contributor</h4>
+          <p class="period">2022</p>
+          <p>Contribuí com correções de acessibilidade e documentação, além de implementar pequenas funcionalidades no front‑end.</p>
+        </li>
 
-      async projetos() {
-        const lista = await buscar("/projetos");
-        lista.forEach((p, i) => {
-          const b = bloco();
-          b.appendChild(textoDestaque((i + 1) + ". " + p.nome + " (" + p.ano + ")"));
-          b.appendChild(textoComum(p.descricao));
-          b.appendChild(textoComum("Tecnologias: " + p.tecnologias.join(", ")));
-          const repo = document.createElement("div");
-          repo.className = "linha";
-          repo.textContent = "Repositório: ";
-          repo.appendChild(link(p.repositorio, "GitHub"));
-          b.appendChild(repo);
-          if (p.gif) {
-            const img = document.createElement("img");
-            img.src = p.gif;
-            img.alt = "Demonstração de " + p.nome;
-            b.appendChild(img);
-          }
-        });
-      },
+        <li class="experience-item">
+          <h4>Freelance — Desenvolvimento de landing page</h4>
+          <p class="period">2023</p>
+          <p>Desenvolvi uma landing page responsiva com otimizações de SEO e performance para um cliente local.</p>
+        </li>
+      </ul>
+    </section>
 
-      async experiencias() {
-        const lista = await buscar("/experiencias");
-        if (lista.length === 0) {
-          linha("Em breve.", "dim");
-          return;
-        }
-        lista.forEach((e) => {
-          const b = bloco();
-          b.appendChild(textoDestaque(e.cargo + " | " + e.empresa));
-          b.appendChild(textoComum(e.periodo));
-          b.appendChild(textoComum(e.descricao));
-        });
-      },
+    <section id="contato" class="container section">
+      <div class="section-header"><h2>Contato</h2></div>
+      <p>Você pode me encontrar em:</p>
+      <ul class="contact-list">
+        <li>Email: <a href="mailto:eduardo@example.com">eduardo@example.com</a></li>
+        <li>GitHub: <a href="https://github.com/eduardoaugustofn" target="_blank" rel="noopener">github.com/eduardoaugustofn</a></li>
+        <li>LinkedIn: <a href="https://www.linkedin.com/in/eduardoaugustofn" target="_blank" rel="noopener">linkedin.com/in/eduardoaugustofn</a></li>
+      </ul>
+    </section>
+  </main>
 
-      async certificados() {
-        const lista = await buscar("/certificados");
-        lista.forEach((c) => {
-          const b = bloco();
-          b.appendChild(textoDestaque(c.nome + " (" + c.ano + ")"));
-          b.appendChild(textoComum(c.instituicao));
-        });
-      },
+  <footer class="site-footer">
+    <div class="container">
+      <p>© Eduardo Augusto — Ciência da Computação, PUC Minas</p>
+    </div>
+  </footer>
 
-      async contato() {
-        const d = await buscar("/contato");
-        const b = bloco();
-        const email = document.createElement("div");
-        email.className = "linha";
-        email.textContent = "E-mail: ";
-        email.appendChild(link("mailto:" + d.email, d.email));
-        b.appendChild(email);
-        const gh = document.createElement("div");
-        gh.className = "linha";
-        gh.textContent = "GitHub: ";
-        gh.appendChild(link(d.github));
-        b.appendChild(gh);
-        const li = document.createElement("div");
-        li.className = "linha";
-        li.textContent = "LinkedIn: ";
-        li.appendChild(link(d.linkedin));
-        b.appendChild(li);
-      },
-
-      limpar() {
-        saida.innerHTML = "";
-      }
-    };
-
-    function textoDestaque(t) {
-      const div = document.createElement("div");
-      div.className = "linha destaque";
-      div.textContent = t;
-      return div;
-    }
-
-    function textoComum(t) {
-      const div = document.createElement("div");
-      div.className = "linha";
-      div.textContent = t;
-      return div;
-    }
-
-    async function executar(texto) {
-      const cmd = texto.trim().toLowerCase();
-      linha("mestre@portfolio:~$ " + texto);
-      if (cmd === "") return;
-      if (!comandos[cmd]) {
-        linha("comando não encontrado: " + cmd + ". Digite 'ajuda'.", "erro");
-        return;
-      }
-      try {
-        await comandos[cmd]();
-      } catch (erro) {
-        linha("Erro ao carregar os dados. Tente de novo em instantes.", "erro");
-      }
-    }
-
-    formulario.addEventListener("submit", (evento) => {
-      evento.preventDefault();
-      const texto = entrada.value;
-      entrada.value = "";
-      executar(texto);
-    });
-
-    terminal.addEventListener("click", () => entrada.focus());
-  </script>
+  <script src="script.js" defer></script>
 </body>
 </html>
