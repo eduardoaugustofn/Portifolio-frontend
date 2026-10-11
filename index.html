@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eduardo Augusto | Portfólio</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: #0a0a0a;
+      color: #33ff66;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 16px;
+    }
+    #terminal {
+      padding: 16px;
+      height: 100%;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .linha { margin: 4px 0; white-space: pre-wrap; word-break: break-word; }
+    .dim { color: #1f9e45; }
+    .destaque { color: #b6ffcb; font-weight: bold; }
+    .erro { color: #ff5f5f; }
+    a { color: #7dffa8; }
+    img { max-width: 100%; border: 1px solid #1f9e45; margin-top: 6px; }
+    .bloco { margin: 10px 0 14px 0; }
+    form { display: flex; margin-top: 8px; }
+    .prompt { white-space: nowrap; color: #7dffa8; padding-top: 6px; }
+    #entrada {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #33ff66;
+      font-family: inherit;
+      font-size: 16px;
+      padding: 6px 0 6px 6px;
+      min-width: 0;
+    }
+    .cursor {
+      display: inline-block;
+      width: 9px;
+      height: 1em;
+      background: #33ff66;
+      animation: piscar 1s steps(1) infinite;
+      vertical-align: text-bottom;
+    }
+    @keyframes piscar { 50% { opacity: 0; } }
+  </style>
+</head>
+<body>
+  <div id="terminal">
+    <div class="linha dim">Portfólio de Eduardo Augusto Freitas Nogueira</div>
+    <div class="linha dim">Digite <span class="destaque">ajuda</span> para ver os comandos.</div>
+    <div id="saida"></div>
+    <form id="formulario" autocomplete="off">
+      <span class="prompt">mestre@portfolio:~$</span>
+      <input id="entrada" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" autofocus>
+    </form>
+  </div>
+
+  <script>
+    // Troque pela URL do seu back-end no Render (sem barra no final).
+    const API = "https://SEU-BACKEND.onrender.com";
+
+    const saida = document.getElementById("saida");
+    const entrada = document.getElementById("entrada");
+    const formulario = document.getElementById("formulario");
+    const terminal = document.getElementById("terminal");
+
+    function linha(texto, classe) {
+      const div = document.createElement("div");
+      div.className = "linha " + (classe || "");
+      div.textContent = texto;
+      saida.appendChild(div);
+      rolar();
+      return div;
+    }
+
+    function bloco() {
+      const div = document.createElement("div");
+      div.className = "bloco";
+      saida.appendChild(div);
+      rolar();
+      return div;
+    }
+
+    function rolar() {
+      terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    function link(url, texto) {
+      const a = document.createElement("a");
+      a.href = url;
+      a.target = "_blank";
+      a.rel = "noopener";
+      a.textContent = texto || url;
+      return a;
+    }
+
+    async function buscar(rota) {
+      const resposta = await fetch(API + rota);
+      if (!resposta.ok) throw new Error("HTTP " + resposta.status);
+      return resposta.json();
+    }
+
+    const comandos = {
+      ajuda() {
+        linha("Comandos disponíveis:", "destaque");
+        linha("  sobre          apresentação");
+        linha("  projetos       linha do tempo de projetos");
+        linha("  experiencias   experiências profissionais");
+        linha("  certificados   certificações");
+        linha("  contato        formas de contato");
+        linha("  limpar         limpa a tela");
+      },
+
+      async sobre() {
+        const d = await buscar("/sobre");
+        const b = bloco();
+        b.appendChild(textoDestaque("[PT]"));
+        b.appendChild(textoComum(d.pt));
+        b.appendChild(textoDestaque("[EN]"));
+        b.appendChild(textoComum(d.en));
+        b.appendChild(textoDestaque("[Interesses]"));
+        b.appendChild(textoComum(d.interesses.join(", ")));
+        b.appendChild(textoDestaque("[Objetivo]"));
+        b.appendChild(textoComum(d.objetivo));
+      },
+
+      async projetos() {
+        const lista = await buscar("/projetos");
+        lista.forEach((p, i) => {
+          const b = bloco();
+          b.appendChild(textoDestaque((i + 1) + ". " + p.nome + " (" + p.ano + ")"));
+          b.appendChild(textoComum(p.descricao));
+          b.appendChild(textoComum("Tecnologias: " + p.tecnologias.join(", ")));
+          const repo = document.createElement("div");
+          repo.className = "linha";
+          repo.textContent = "Repositório: ";
+          repo.appendChild(link(p.repositorio, "GitHub"));
+          b.appendChild(repo);
+          if (p.gif) {
+            const img = document.createElement("img");
+            img.src = p.gif;
+            img.alt = "Demonstração de " + p.nome;
+            b.appendChild(img);
+          }
+        });
+      },
+
+      async experiencias() {
+        const lista = await buscar("/experiencias");
+        if (lista.length === 0) {
+          linha("Em breve.", "dim");
+          return;
+        }
+        lista.forEach((e) => {
+          const b = bloco();
+          b.appendChild(textoDestaque(e.cargo + " | " + e.empresa));
+          b.appendChild(textoComum(e.periodo));
+          b.appendChild(textoComum(e.descricao));
+        });
+      },
+
+      async certificados() {
+        const lista = await buscar("/certificados");
+        lista.forEach((c) => {
+          const b = bloco();
+          b.appendChild(textoDestaque(c.nome + " (" + c.ano + ")"));
+          b.appendChild(textoComum(c.instituicao));
+        });
+      },
+
+      async contato() {
+        const d = await buscar("/contato");
+        const b = bloco();
+        const email = document.createElement("div");
+        email.className = "linha";
+        email.textContent = "E-mail: ";
+        email.appendChild(link("mailto:" + d.email, d.email));
+        b.appendChild(email);
+        const gh = document.createElement("div");
+        gh.className = "linha";
+        gh.textContent = "GitHub: ";
+        gh.appendChild(link(d.github));
+        b.appendChild(gh);
+        const li = document.createElement("div");
+        li.className = "linha";
+        li.textContent = "LinkedIn: ";
+        li.appendChild(link(d.linkedin));
+        b.appendChild(li);
+      },
+
+      limpar() {
+        saida.innerHTML = "";
+      }
+    };
+
+    function textoDestaque(t) {
+      const div = document.createElement("div");
+      div.className = "linha destaque";
+      div.textContent = t;
+      return div;
+    }
+
+    function textoComum(t) {
+      const div = document.createElement("div");
+      div.className = "linha";
+      div.textContent = t;
+      return div;
+    }
+
+    async function executar(texto) {
+      const cmd = texto.trim().toLowerCase();
+      linha("mestre@portfolio:~$ " + texto);
+      if (cmd === "") return;
+      if (!comandos[cmd]) {
+        linha("comando não encontrado: " + cmd + ". Digite 'ajuda'.", "erro");
+        return;
+      }
+      try {
+        await comandos[cmd]();
+      } catch (erro) {
+        linha("Erro ao carregar os dados. Tente de novo em instantes.", "erro");
+      }
+    }
+
+    formulario.addEventListener("submit", (evento) => {
+      evento.preventDefault();
+      const texto = entrada.value;
+      entrada.value = "";
+      executar(texto);
+    });
+
+    terminal.addEventListener("click", () => entrada.focus());
+  </script>
+</body>
+</html>
