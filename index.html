@@ -1,400 +1,45 @@
-// script.js - controla o terminal, renderiza seções e gerencia aparência
-(function(){
-  // Elements
-  const output = document.getElementById('output');
-  const form = document.getElementById('cli');
-  const input = document.getElementById('input');
-  const terminal = document.getElementById('terminal');
-  const navButtons = Array.from(document.querySelectorAll('.nav-btn'));
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Eduardo Augusto | Portfólio</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="term-header">
+    <div class="container term-header-inner">
+      <div class="brand">eduardo@portfolio:~$</div>
+      <nav class="mini-nav" aria-label="Comandos rápidos">
+        <button class="nav-btn" data-cmd="sobre">sobre</button>
+        <button class="nav-btn" data-cmd="projetos">projetos</button>
+        <button class="nav-btn" data-cmd="experiencias">experiencias</button>
+        <button class="nav-btn" data-cmd="certificados">certificados</button>
+        <button class="nav-btn" data-cmd="contato">contato</button>
+        <button class="nav-btn" data-cmd="aparencia">aparência</button>
+      </nav>
+    </div>
+  </header>
 
-  // Dados reais solicitados
-  const DATA = {
-    pt: {
-      nome: 'Eduardo Augusto Freitas Nogueira',
-      formacao: 'estudante de Ciência da Computação na PUC Minas, em Belo Horizonte, no primeiro período.',
-      interesses: 'desenvolvimento web, front-end, jogos e interfaces acessíveis.',
-      objetivo: 'tornar-se Full Stack Developer até 2030 e conseguir um estágio na área até 2028.',
-      experiencia: [],
-      projetos: [
-        {
-          nome: 'Heróis da Saúde',
-          ano: '2026',
-          descricao: 'jogo educativo sobre saúde, desenvolvido como projeto interdisciplinar entre Computação e Medicina na PUC Minas.',
-          tecnologias: '[preencher depois]',
-          repo: '',
-          imagem: ''
-        }
-      ],
-      certificados: [
-        { nome: 'Inglês C1', instituicao: 'Wimbledon School of English', ano: '2024' }
-      ],
-      contato: {
-        email: 'eduafn2008@gmail.com',
-        github: 'https://github.com/eduardoaugustofn',
-        linkedin: 'https://br.linkedin.com/in/eduardo-augusto-freitas-nogueira-948112350'
-      }
-    },
-    en: {
-      nome: 'Eduardo Augusto Freitas Nogueira',
-      formacao: 'Computer Science student at PUC Minas, Belo Horizonte, in the first semester.',
-      interesses: 'web development, front-end, games and accessible interfaces.',
-      objetivo: 'become a Full Stack Developer by 2030 and secure a development internship by 2028.',
-      experiencia: [],
-      projetos: [
-        {
-          nome: 'Heróis da Saúde',
-          ano: '2026',
-          descricao: 'educational health game developed as an interdisciplinary project between Computing and Medicine at PUC Minas.',
-          tecnologias: '[preencher depois]',
-          repo: '',
-          imagem: ''
-        }
-      ],
-      certificados: [
-        { nome: 'English C1', instituicao: 'Wimbledon School of English', ano: '2024' }
-      ],
-      contato: {
-        email: 'eduafn2008@gmail.com',
-        github: 'https://github.com/eduardoaugustofn',
-        linkedin: 'https://br.linkedin.com/in/eduardo-augusto-freitas-nogueira-948112350'
-      }
-    }
-  };
+  <main class="terminal" id="terminal">
+    <div class="container">
+      <div class="line dim">Portfólio de Eduardo Augusto Freitas Nogueira</div>
+      <div class="line dim">Digite <span class="highlight">ajuda</span> para ver os comandos.</div>
 
-  function appendLine(text, cls){
-    const d = document.createElement('div');
-    d.className = 'line' + (cls ? ' ' + cls : '');
-    d.textContent = text;
-    output.appendChild(d);
-    scrollEnd();
-    return d;
-  }
+      <div id="output" class="output" aria-live="polite"></div>
 
-  function appendBlock(node){
-    const wrapper = document.createElement('div');
-    wrapper.className = 'block';
-    wrapper.appendChild(node);
-    output.appendChild(wrapper);
-    scrollEnd();
-    return wrapper;
-  }
+      <form id="cli" class="cmdline" autocomplete="off" role="search" aria-label="Terminal de comandos">
+        <label for="input" class="prompt">eduardo@portfolio:~$</label>
+        <div class="input-wrap">
+          <input id="input" name="input" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off" aria-label="Digite um comando">
+          <span class="cursor" aria-hidden="true"></span>
+        </div>
+      </form>
 
-  function createElement(tag, text, cls){
-    const el = document.createElement(tag);
-    if(cls) el.className = cls;
-    if(text !== undefined) el.textContent = text;
-    return el;
-  }
+      <div class="site-footer">© Eduardo Augusto — Ciência da Computação, PUC Minas</div>
+    </div>
+  </main>
 
-  function link(url, text){
-    const a = document.createElement('a');
-    a.href = url;
-    a.target = '_blank';
-    a.rel = 'noopener noreferrer';
-    a.textContent = text || url;
-    return a;
-  }
-
-  function scrollEnd(){
-    terminal.scrollTop = terminal.scrollHeight;
-  }
-
-  // Aparência / temas
-  const DEFAULT_COLOR = '#7af0c6';
-  const STORAGE_KEY = 'portfolio_accent_color';
-
-  function trySaveColor(color){
-    try { localStorage.setItem(STORAGE_KEY, color); } catch (e) {}
-  }
-
-  function tryLoadColor(){
-    try { return localStorage.getItem(STORAGE_KEY); } catch (e) { return null; }
-  }
-
-  function applyAccent(color){
-    if(!color) return;
-    document.documentElement.style.setProperty('--accent', color);
-    document.documentElement.style.setProperty('--accent-2', color);
-    const cursor = document.querySelector('.cursor');
-    if(cursor) cursor.style.background = color;
-  }
-
-  function renderAparencia(){
-    const panel = document.createElement('div');
-    panel.className = 'appear-panel';
-
-    panel.appendChild(createElement('div', 'Aparência — escolha a cor do texto e dos destaques', 'muted'));
-
-    const colorOptions = [
-      { name: 'Verde (padrão)', hex: '#7af0c6' },
-      { name: 'Âmbar', hex: '#ffb86c' },
-      { name: 'Azul', hex: '#6cb8ff' },
-      { name: 'Roxo', hex: '#c49cff' },
-      { name: 'Vermelho', hex: '#ff6a6a' },
-      { name: 'Branco', hex: '#e6e6e6' }
-    ];
-
-    const row = document.createElement('div');
-    row.className = 'color-row';
-    colorOptions.forEach(opt => {
-      const sw = document.createElement('button');
-      sw.className = 'color-swatch';
-      sw.title = opt.name + ' ' + opt.hex;
-      sw.setAttribute('aria-label', opt.name + ' ' + opt.hex);
-      sw.style.background = opt.hex;
-      sw.addEventListener('click', () => {
-        applyAccent(opt.hex);
-        trySaveColor(opt.hex);
-        document.querySelectorAll('.color-swatch').forEach(b => b.style.boxShadow = '0 6px 14px rgba(0,0,0,0.35)');
-        sw.style.boxShadow = '0 0 0 3px rgba(255,255,255,0.06), inset 0 -2px 8px rgba(0,0,0,0.18)';
-      });
-      row.appendChild(sw);
-    });
-    panel.appendChild(row);
-
-    const customRow = document.createElement('div');
-    customRow.className = 'controls';
-    const colorLabel = createElement('div', 'Cor personalizada:', 'muted');
-    const colorInput = document.createElement('input');
-    colorInput.type = 'color';
-    colorInput.value = (tryLoadColor() || DEFAULT_COLOR);
-    colorInput.title = 'Escolha cor personalizada';
-    colorInput.addEventListener('input', () => {
-      applyAccent(colorInput.value);
-    });
-    colorInput.addEventListener('change', () => {
-      trySaveColor(colorInput.value);
-      document.querySelectorAll('.color-swatch').forEach(b => b.style.boxShadow = '0 6px 14px rgba(0,0,0,0.35)');
-    });
-
-    customRow.appendChild(colorLabel);
-    customRow.appendChild(colorInput);
-    panel.appendChild(customRow);
-
-    const controls = document.createElement('div');
-    controls.className = 'controls';
-    const restore = document.createElement('button');
-    restore.className = 'btn small';
-    restore.textContent = 'restaurar padrão';
-    restore.addEventListener('click', () => {
-      applyAccent(DEFAULT_COLOR);
-      trySaveColor(DEFAULT_COLOR);
-      colorInput.value = DEFAULT_COLOR;
-      document.querySelectorAll('.color-swatch').forEach(b => b.style.boxShadow = '0 6px 14px rgba(0,0,0,0.35)');
-    });
-    controls.appendChild(restore);
-
-    const info = document.createElement('div');
-    info.className = 'muted';
-    info.textContent = 'A cor é salva no seu navegador (localStorage).';
-    panel.appendChild(controls);
-    panel.appendChild(info);
-
-    appendBlock(panel);
-  }
-
-  // Render functions
-  function renderSobre(){
-    const box = document.createElement('div');
-    box.className = 'block';
-
-    box.appendChild(createElement('div', '[PT]', 'line highlight'));
-    box.appendChild(createElement('div', 'Nome: ' + DATA.pt.nome, 'line'));
-    box.appendChild(createElement('div', 'Formação: ' + DATA.pt.formacao, 'line'));
-    box.appendChild(createElement('div', 'Interesses: ' + DATA.pt.interesses, 'line'));
-    box.appendChild(createElement('div', 'Objetivo: ' + DATA.pt.objetivo, 'line'));
-
-    box.appendChild(createElement('div', '[EN]', 'line highlight'));
-    box.appendChild(createElement('div', 'Name: ' + DATA.en.nome, 'line'));
-    box.appendChild(createElement('div', 'Education: ' + DATA.en.formacao, 'line'));
-    box.appendChild(createElement('div', 'Interests: ' + DATA.en.interesses, 'line'));
-    box.appendChild(createElement('div', 'Goal: ' + DATA.en.objetivo, 'line'));
-
-    output.appendChild(box);
-    scrollEnd();
-  }
-
-  function renderProjetos(){
-    const box = document.createElement('div');
-    box.className = 'block';
-    box.appendChild(createElement('div', 'Projetos', 'line highlight'));
-
-    const ul = document.createElement('ul');
-    ul.className = 'project-list';
-
-    DATA.pt.projetos.forEach(p => {
-      const li = document.createElement('li');
-      li.className = 'project-item';
-
-      const name = createElement('div', p.nome + ' (' + p.ano + ')', 'line highlight');
-      li.appendChild(name);
-      li.appendChild(createElement('div', p.descricao, 'line'));
-      li.appendChild(createElement('div', 'Tecnologias: ' + p.tecnologias, 'line muted'));
-
-      if(p.repo && p.repo.trim() !== ''){
-        const repoLine = document.createElement('div');
-        repoLine.className = 'line';
-        repoLine.appendChild(document.createTextNode('Repositório: '));
-        repoLine.appendChild(link(p.repo, 'GitHub'));
-        li.appendChild(repoLine);
-      }
-
-      if(p.imagem && p.imagem.trim() !== ''){
-        const img = document.createElement('img');
-        img.src = p.imagem;
-        img.alt = 'Imagem do projeto ' + p.nome;
-        li.appendChild(img);
-      }
-
-      ul.appendChild(li);
-    });
-
-    box.appendChild(ul);
-    output.appendChild(box);
-    scrollEnd();
-  }
-
-  function renderExperiencias(){
-    const box = document.createElement('div');
-    box.className = 'block';
-    box.appendChild(createElement('div', 'Experiências', 'line highlight'));
-
-    if(!DATA.pt.experiencia || DATA.pt.experiencia.length === 0){
-      box.appendChild(createElement('div', 'Em breve', 'line muted'));
-    } else {
-      const ul = document.createElement('ul');
-      ul.className = 'experience-list';
-      DATA.pt.experiencia.forEach(it => {
-        const li = document.createElement('li');
-        li.className = 'experience-item';
-        li.appendChild(createElement('div', it.empresa + ' — ' + it.cargo, 'line highlight'));
-        li.appendChild(createElement('div', it.periodo, 'line period'));
-        li.appendChild(createElement('div', it.descricao, 'line'));
-        ul.appendChild(li);
-      });
-      box.appendChild(ul);
-    }
-
-    output.appendChild(box);
-    scrollEnd();
-  }
-
-  function renderCertificados(){
-    const box = document.createElement('div');
-    box.className = 'block';
-    box.appendChild(createElement('div', 'Certificados', 'line highlight'));
-
-    const ul = document.createElement('ul');
-    ul.className = 'cert-list';
-    DATA.pt.certificados.forEach(c => {
-      const li = document.createElement('li');
-      li.className = 'line';
-      li.textContent = c.nome + ', ' + c.instituicao + ', ' + c.ano + '.';
-      ul.appendChild(li);
-    });
-
-    box.appendChild(ul);
-    output.appendChild(box);
-    scrollEnd();
-  }
-
-  function renderContato(){
-    const box = document.createElement('div');
-    box.className = 'block';
-    box.appendChild(createElement('div', 'Contato', 'line highlight'));
-
-    const ul = document.createElement('ul');
-    ul.className = 'contact-list';
-
-    const email = document.createElement('li');
-    email.className = 'line';
-    email.appendChild(document.createTextNode('E-mail: '));
-    email.appendChild(link('mailto:' + DATA.pt.contato.email, DATA.pt.contato.email));
-    ul.appendChild(email);
-
-    const gh = document.createElement('li');
-    gh.className = 'line';
-    gh.appendChild(document.createTextNode('GitHub: '));
-    gh.appendChild(link(DATA.pt.contato.github, DATA.pt.contato.github.replace(/^https?:\/\//, '')));
-    ul.appendChild(gh);
-
-    const li = document.createElement('li');
-    li.className = 'line';
-    li.appendChild(document.createTextNode('LinkedIn: '));
-    li.appendChild(link(DATA.pt.contato.linkedin, DATA.pt.contato.linkedin.replace(/^https?:\/\//, '')));
-    ul.appendChild(li);
-
-    box.appendChild(ul);
-    output.appendChild(box);
-    scrollEnd();
-  }
-
-  // Comandos
-  const COMMANDS = {
-    'ajuda': function(){
-      appendLine('Comandos disponíveis:', 'highlight');
-      appendLine('  sobre          apresentação (PT/EN)');
-      appendLine('  projetos       lista de projetos');
-      appendLine('  experiencias   experiências profissionais');
-      appendLine('  certificados   certificados');
-      appendLine('  contato        formas de contato');
-      appendLine('  aparencia      painel de aparências (cores)');
-      appendLine('  limpar         limpa a tela');
-    },
-    'sobre': function(){ renderSobre(); },
-    'projetos': function(){ renderProjetos(); },
-    'experiencias': function(){ renderExperiencias(); },
-    'certificados': function(){ renderCertificados(); },
-    'contato': function(){ renderContato(); },
-    'aparencia': function(){ renderAparencia(); },
-    'limpar': function(){ output.innerHTML = ''; }
-  };
-
-  function execCommand(text){
-    const cmd = (text || '').trim().toLowerCase();
-    appendLine('eduardo@portfolio:~$ ' + (text || ''), 'muted');
-
-    if(!cmd) return;
-    if(!COMMANDS[cmd]){
-      appendLine('Comando não encontrado: ' + cmd + '. Digite "ajuda".', 'error');
-      return;
-    }
-    COMMANDS[cmd]();
-  }
-
-  form.addEventListener('submit', (ev) => {
-    ev.preventDefault();
-    execCommand(input.value);
-    input.value = '';
-    input.focus();
-  });
-
-  navButtons.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const cmd = btn.dataset.cmd;
-      execCommand(cmd);
-      input.focus();
-    });
-  });
-
-  input.addEventListener('keydown', (ev) => {
-    if(ev.key === 'Tab'){
-      ev.preventDefault();
-      const suggestions = Object.keys(COMMANDS);
-      const val = input.value.trim().toLowerCase();
-      const found = suggestions.find(s => s.startsWith(val));
-      if(found) input.value = found;
-    }
-  });
-
-  terminal.addEventListener('click', () => input.focus());
-
-  // inicialização da cor salva
-  (function initColor(){
-    const saved = tryLoadColor();
-    const color = saved || DEFAULT_COLOR;
-    applyAccent(color);
-  })();
-
-  appendLine('Digite "ajuda" para ver os comandos.', 'dim');
-})();
+  <script src="script.js" defer></script>
+</body>
+</html>
