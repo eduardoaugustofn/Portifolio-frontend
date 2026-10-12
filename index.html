@@ -4,103 +4,464 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Eduardo Augusto | Portfólio</title>
-  <link rel="stylesheet" href="style.css">
+  <style>
+    * { box-sizing: border-box; }
+
+    :root {
+      --accent: #33ff66;
+      --accent-soft: #1f9e45;
+      --bg: #050b0f;
+      --text: #d9f9e8;
+      --error: #ff6a6a;
+    }
+
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Courier New", Courier, monospace;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+
+    #terminal {
+      height: 100%;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 16px;
+    }
+
+    .linha { margin: 2px 0; white-space: pre-wrap; word-break: break-word; }
+    .destaque { color: var(--accent); font-weight: bold; }
+    .dim { color: var(--accent-soft); }
+    .muted { color: #7fa895; }
+    .erro { color: var(--error); }
+
+    a { color: var(--accent); }
+
+    .bloco {
+      margin: 10px 0 14px;
+      padding-left: 8px;
+      border-left: 2px solid var(--accent-soft);
+    }
+
+    .projeto { margin: 10px 0; }
+
+    .atalhos {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 10px 0;
+    }
+
+    button {
+      background: transparent;
+      border: 1px solid var(--accent-soft);
+      color: var(--text);
+      font: inherit;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover, button:focus-visible {
+      border-color: var(--accent);
+      color: var(--accent);
+      outline: none;
+    }
+
+    input[type="color"] {
+      width: 48px;
+      height: 32px;
+      border: 1px solid var(--accent-soft);
+      background: transparent;
+      padding: 0;
+      vertical-align: middle;
+    }
+
+    form { display: flex; align-items: center; margin-top: 10px; }
+
+    .prompt {
+      white-space: nowrap;
+      color: var(--accent);
+      font-weight: bold;
+      padding-right: 6px;
+    }
+
+    #entrada {
+      flex: 1;
+      min-width: 0;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font: inherit;
+      font-size: 16px;
+      padding: 6px 0;
+    }
+
+    .cursor {
+      display: inline-block;
+      width: 9px;
+      height: 1em;
+      background: var(--accent);
+      animation: piscar 1s steps(1) infinite;
+      vertical-align: text-bottom;
+    }
+
+    @keyframes piscar { 50% { opacity: 0; } }
+  </style>
 </head>
 <body>
-  <header class="site-header">
-    <div class="container header-inner">
-      <a href="#home" class="brand">Eduardo Augusto</a>
-      <button id="nav-toggle" class="nav-toggle" aria-label="Abrir menu" aria-expanded="false">☰</button>
-      <nav id="main-nav" class="main-nav" aria-label="Navegação principal">
-        <a href="#home" class="nav-link">Início</a>
-        <a href="#sobre" class="nav-link">Sobre</a>
-        <a href="#projetos" class="nav-link">Projetos</a>
-        <a href="#experiencias" class="nav-link">Experiências</a>
-        <a href="#contato" class="nav-link">Contato</a>
-      </nav>
+  <div id="terminal">
+    <div class="linha dim">Portfólio de Eduardo Augusto Freitas Nogueira</div>
+    <div class="linha dim">Digite <span class="destaque">ajuda</span> para ver os comandos.</div>
+
+    <div class="atalhos" aria-label="Atalhos">
+      <button data-cmd="sobre">sobre</button>
+      <button data-cmd="projetos">projetos</button>
+      <button data-cmd="experiencias">experiencias</button>
+      <button data-cmd="certificados">certificados</button>
+      <button data-cmd="contato">contato</button>
+      <button data-cmd="aparencia">aparencia</button>
     </div>
-  </header>
 
-  <main>
-    <section id="home" class="hero">
-      <div class="container">
-        <h1>Olá — eu sou Eduardo Augusto.</h1>
-        <p class="lead">Desenvolvedor Front‑End / Estudante de Ciência da Computação na PUC Minas. Crio interfaces acessíveis e projetos web responsivos.</p>
-        <a class="cta" href="#projetos">Ver Projetos</a>
-      </div>
-    </section>
+    <div id="saida"></div>
 
-    <section id="sobre" class="container section">
-      <div class="section-header">
-        <h2>Sobre Mim</h2>
-        <div class="lang-toggle">
-          <button data-lang="pt" class="active" type="button">PT</button>
-          <button data-lang="en" type="button">EN</button>
-        </div>
-      </div>
+    <form id="formulario" autocomplete="off">
+      <span class="prompt">eduardo@portfolio:~$</span>
+      <input id="entrada" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" autofocus>
+      <span class="cursor" aria-hidden="true"></span>
+    </form>
+  </div>
 
-      <div class="about">
-        <article class="about-text" data-lang="pt">
-          <h3>Apresentação (PT)</h3>
-          <p>Sou estudante de Ciência da Computação na PUC Minas, com interesse em desenvolvimento web, interfaces responsivas, acessibilidade e boas práticas de engenharia de software.</p>
-          <p class="highlight">Formação: estudante de Ciência da Computação — PUC Minas, Belo Horizonte, primeiro período.</p>
-          <p>Interesses: desenvolvimento web, front-end, jogos e interfaces acessíveis.</p>
-          <p>Objetivo profissional: tornar-me Full Stack Developer até 2030 e conseguir um estágio na área até 2028.</p>
-        </article>
+  <script>
+    const DADOS = {
+      sobre: {
+        pt: [
+          "Nome: Eduardo Augusto Freitas Nogueira",
+          "Formação: estudante de Ciência da Computação na PUC Minas, em Belo Horizonte, no primeiro período.",
+          "Interesses: desenvolvimento web, front-end, jogos e interfaces acessíveis.",
+          "Objetivo: tornar-se Full Stack Developer até 2030 e conseguir um estágio na área até 2028."
+        ],
+        en: [
+          "Name: Eduardo Augusto Freitas Nogueira",
+          "Education: Computer Science student at PUC Minas, Belo Horizonte, in the first semester.",
+          "Interests: web development, front-end, games and accessible interfaces.",
+          "Goal: become a Full Stack Developer by 2030 and secure a development internship by 2028."
+        ]
+      },
+      projetos: [
+        {
+          nome: "Heróis da Saúde",
+          ano: 2026,
+          descricao: "Jogo educativo sobre saúde, desenvolvido como projeto interdisciplinar entre Computação e Medicina na PUC Minas.",
+          tecnologias: [],
+          repositorio: "",
+          imagem: ""
+        }
+      ],
+      experiencias: [],
+      certificados: [
+        { nome: "Inglês C1", instituicao: "Wimbledon School of English", ano: 2024 }
+      ],
+      contato: {
+        email: "eduafn2008@gmail.com",
+        github: "https://github.com/eduardoaugustofn",
+        linkedin: "https://br.linkedin.com/in/eduardo-augusto-freitas-nogueira-948112350"
+      }
+    };
 
-        <article class="about-text" data-lang="en" hidden>
-          <h3>About (EN)</h3>
-          <p>I am a Computer Science student at PUC Minas with interests in web development, responsive interfaces, accessibility and software engineering best practices.</p>
-          <p class="highlight">Education: Computer Science student at PUC Minas, Belo Horizonte, in the first semester.</p>
-          <p>Interests: web development, front-end, games and accessible interfaces.</p>
-          <p>Professional goal: become a Full Stack Developer by 2030 and secure a development internship by 2028.</p>
-        </article>
-      </div>
-    </section>
+    const CORES = {
+      verde: "#33ff66",
+      ambar: "#ffb86c",
+      azul: "#6cb8ff",
+      roxo: "#c49cff",
+      vermelho: "#ff6a6a",
+      branco: "#e6e6e6"
+    };
+    const COR_PADRAO = "#33ff66";
+    const CHAVE_COR = "portfolio-cor";
 
-    <section id="projetos" class="container section">
-      <div class="section-header"><h2>Projetos</h2><p class="muted">Linha do tempo — do mais antigo ao mais recente</p></div>
-      <ol class="timeline">
-        <li class="timeline-item">
-          <div class="time-meta">2026</div>
-          <div class="card">
-            <h3 class="project-title">Heróis da Saúde</h3>
-            <p class="project-desc">Jogo educativo sobre saúde, desenvolvido como projeto interdisciplinar entre Computação e Medicina na PUC Minas.</p>
-            <p class="project-tech"><strong>Tecnologias:</strong> [preencher depois]</p>
-            <p class="repo-link-wrap">Repositório: ainda não disponível.</p>
-          </div>
-        </li>
-      </ol>
-    </section>
+    const saida = document.getElementById("saida");
+    const formulario = document.getElementById("formulario");
+    const entrada = document.getElementById("entrada");
+    const terminal = document.getElementById("terminal");
 
-    <section id="experiencias" class="container section">
-      <div class="section-header"><h2>Experiências</h2></div>
-      <p class="empty-state">Em breve</p>
-    </section>
+    function rolar() {
+      terminal.scrollTop = terminal.scrollHeight;
+    }
 
-    <section id="certificados" class="container section">
-      <div class="section-header"><h2>Certificados</h2></div>
-      <ul class="cert-list">
-        <li>Inglês C1, Wimbledon School of English, 2024.</li>
-      </ul>
-    </section>
+    function linha(texto, classe) {
+      const div = document.createElement("div");
+      div.className = "linha " + (classe || "");
+      div.textContent = texto;
+      saida.appendChild(div);
+      rolar();
+      return div;
+    }
 
-    <section id="contato" class="container section">
-      <div class="section-header"><h2>Contato</h2></div>
-      <ul class="contact-list">
-        <li>Email: <a href="mailto:eduafn2008@gmail.com">eduafn2008@gmail.com</a></li>
-        <li>GitHub: <a href="https://github.com/eduardoaugustofn" target="_blank" rel="noopener">github.com/eduardoaugustofn</a></li>
-        <li>LinkedIn: <a href="https://br.linkedin.com/in/eduardo-augusto-freitas-nogueira-948112350" target="_blank" rel="noopener">linkedin.com/in/eduardo-augusto-freitas-nogueira-948112350</a></li>
-      </ul>
-    </section>
-  </main>
+    function bloco() {
+      const div = document.createElement("div");
+      div.className = "bloco";
+      saida.appendChild(div);
+      return div;
+    }
 
-  <footer class="site-footer">
-    <div class="container">
-      <p>© Eduardo Augusto — Ciência da Computação, PUC Minas</p>
-    </div>
-  </footer>
+    function ligacao(url, texto) {
+      const a = document.createElement("a");
+      a.href = url;
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      a.textContent = texto || url;
+      return a;
+    }
 
-  <script src="script.js" defer></script>
+    function linhaComLink(rotulo, url, texto) {
+      const div = document.createElement("div");
+      div.className = "linha";
+      div.textContent = rotulo;
+      div.appendChild(ligacao(url, texto));
+      return div;
+    }
+
+    function aplicarCor(cor) {
+      document.documentElement.style.setProperty("--accent", cor);
+      document.documentElement.style.setProperty("--accent-soft", cor);
+    }
+
+    function salvarCor(cor) {
+      try {
+        localStorage.setItem(CHAVE_COR, cor);
+      } catch (e) {
+        // navegador bloqueou o armazenamento; a cor vale só nesta sessão
+      }
+    }
+
+    function carregarCor() {
+      try {
+        return localStorage.getItem(CHAVE_COR);
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function escolherCor(cor) {
+      aplicarCor(cor);
+      salvarCor(cor);
+      linha("Cor alterada para " + cor + ".", "destaque");
+    }
+
+    const comandos = {
+      ajuda() {
+        linha("Comandos disponíveis:", "destaque");
+        linha("  sobre          apresentação (PT e EN)");
+        linha("  projetos       projetos");
+        linha("  experiencias   experiências");
+        linha("  certificados   certificações");
+        linha("  contato        formas de contato");
+        linha("  aparencia      trocar a cor do terminal");
+        linha("  limpar         limpa a tela");
+      },
+
+      sobre() {
+        const b = bloco();
+        const pt = document.createElement("div");
+        pt.className = "linha destaque";
+        pt.textContent = "[PT]";
+        b.appendChild(pt);
+        DADOS.sobre.pt.forEach((t) => b.appendChild(textoLinha(t)));
+
+        const en = document.createElement("div");
+        en.className = "linha destaque";
+        en.textContent = "[EN]";
+        b.appendChild(en);
+        DADOS.sobre.en.forEach((t) => b.appendChild(textoLinha(t)));
+        rolar();
+      },
+
+      projetos() {
+        const b = bloco();
+        const titulo = document.createElement("div");
+        titulo.className = "linha destaque";
+        titulo.textContent = "Projetos (do mais antigo ao mais recente)";
+        b.appendChild(titulo);
+
+        DADOS.projetos.forEach((p) => {
+          const item = document.createElement("div");
+          item.className = "projeto";
+          const nome = document.createElement("div");
+          nome.className = "linha destaque";
+          nome.textContent = p.ano + " | " + p.nome;
+          item.appendChild(nome);
+          item.appendChild(textoLinha(p.descricao));
+          if (p.tecnologias.length) {
+            item.appendChild(textoLinha("Tecnologias: " + p.tecnologias.join(", ")));
+          }
+          if (p.repositorio) {
+            item.appendChild(linhaComLink("Repositório: ", p.repositorio, "GitHub"));
+          }
+          if (p.imagem) {
+            const img = document.createElement("img");
+            img.src = p.imagem;
+            img.alt = "Imagem do projeto " + p.nome;
+            img.style.maxWidth = "100%";
+            item.appendChild(img);
+          }
+          b.appendChild(item);
+        });
+        rolar();
+      },
+
+      experiencias() {
+        if (DADOS.experiencias.length === 0) {
+          linha("Em breve.", "muted");
+          return;
+        }
+        const b = bloco();
+        DADOS.experiencias.forEach((e) => {
+          b.appendChild(textoDestaque(e.cargo + " | " + e.empresa));
+          b.appendChild(textoLinha(e.periodo));
+          b.appendChild(textoLinha(e.descricao));
+        });
+        rolar();
+      },
+
+      certificados() {
+        const b = bloco();
+        DADOS.certificados.forEach((c) => {
+          b.appendChild(textoDestaque(c.nome + " (" + c.ano + ")"));
+          b.appendChild(textoLinha(c.instituicao));
+        });
+        rolar();
+      },
+
+      contato() {
+        const b = bloco();
+        const email = document.createElement("div");
+        email.className = "linha";
+        email.textContent = "E-mail: ";
+        email.appendChild(ligacao("mailto:" + DADOS.contato.email, DADOS.contato.email));
+        b.appendChild(email);
+        b.appendChild(linhaComLink("GitHub: ", DADOS.contato.github, "github.com/eduardoaugustofn"));
+        b.appendChild(linhaComLink("LinkedIn: ", DADOS.contato.linkedin, "linkedin.com/in/eduardo-augusto-freitas-nogueira"));
+        rolar();
+      },
+
+      aparencia(args) {
+        const escolha = (args || "").trim().toLowerCase();
+
+        if (escolha === "padrao" || escolha === "padrão") {
+          escolherCor(COR_PADRAO);
+          return;
+        }
+        if (CORES[escolha]) {
+          escolherCor(CORES[escolha]);
+          return;
+        }
+        if (/^#[0-9a-f]{6}$/.test(escolha)) {
+          escolherCor(escolha);
+          return;
+        }
+
+        const b = bloco();
+        b.appendChild(textoDestaque("Aparência: escolha uma cor"));
+        const botoes = document.createElement("div");
+        botoes.className = "atalhos";
+        Object.keys(CORES).forEach((nome) => {
+          const btn = document.createElement("button");
+          btn.textContent = nome;
+          btn.addEventListener("click", () => escolherCor(CORES[nome]));
+          botoes.appendChild(btn);
+        });
+        const reset = document.createElement("button");
+        reset.textContent = "restaurar padrão";
+        reset.addEventListener("click", () => escolherCor(COR_PADRAO));
+        botoes.appendChild(reset);
+        b.appendChild(botoes);
+
+        const linhaPersonalizada = document.createElement("div");
+        linhaPersonalizada.className = "linha";
+        linhaPersonalizada.textContent = "Cor personalizada: ";
+        const seletor = document.createElement("input");
+        seletor.type = "color";
+        seletor.value = COR_PADRAO;
+        seletor.addEventListener("input", (evento) => escolherCor(evento.target.value));
+        linhaPersonalizada.appendChild(seletor);
+        b.appendChild(linhaPersonalizada);
+
+        linha("Ou digite: aparencia azul | aparencia #ff00aa | aparencia padrao", "muted");
+        rolar();
+      },
+
+      limpar() {
+        saida.innerHTML = "";
+      }
+    };
+
+    function textoLinha(t) {
+      const div = document.createElement("div");
+      div.className = "linha";
+      div.textContent = t;
+      return div;
+    }
+
+    function textoDestaque(t) {
+      const div = document.createElement("div");
+      div.className = "linha destaque";
+      div.textContent = t;
+      return div;
+    }
+
+    function executar(texto) {
+      const entradaLimpa = texto.trim();
+      linha("eduardo@portfolio:~$ " + entradaLimpa, "muted");
+      if (!entradaLimpa) return;
+
+      const partes = entradaLimpa.toLowerCase().split(/\s+/);
+      const cmd = partes[0];
+      const args = entradaLimpa.split(/\s+/).slice(1).join(" ");
+
+      if (cmd === "ajuda") {
+        comandos.ajuda();
+        return;
+      }
+      if (cmd === "aparencia" || cmd === "aparência") {
+        comandos.aparencia(args);
+        return;
+      }
+      if (!comandos[cmd]) {
+        linha("Comando não encontrado: " + cmd + ". Digite \"ajuda\".", "erro");
+        return;
+      }
+      comandos[cmd]();
+    }
+
+    formulario.addEventListener("submit", (evento) => {
+      evento.preventDefault();
+      const texto = entrada.value;
+      entrada.value = "";
+      executar(texto);
+      entrada.focus();
+    });
+
+    document.querySelectorAll("[data-cmd]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        executar(btn.dataset.cmd);
+        entrada.focus();
+      });
+    });
+
+    terminal.addEventListener("click", (evento) => {
+      if (evento.target.closest("button, a, input")) return;
+      entrada.focus();
+    });
+
+    const corSalva = carregarCor();
+    if (corSalva) aplicarCor(corSalva);
+
+    linha("Digite \"ajuda\" para ver os comandos.", "dim");
+  </script>
 </body>
 </html>
