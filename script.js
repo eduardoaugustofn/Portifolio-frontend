@@ -49,9 +49,10 @@
     }
   };
 
+  // normalized color name keys (no hyphens or accents)
   const COLOR_NAMES = {
     verde: '#7af0c6',
-    âmbar: '#ffb86c',
+    ambar: '#ffb86c',
     amarelo: '#ffd166',
     azul: '#6cb8ff',
     roxo: '#c49cff',
@@ -63,7 +64,6 @@
     ciano: '#67e8f9',
     laranja: '#ff9f43',
     verdeescuro: '#32b67a',
-    verde-escuro: '#32b67a',
     marrom: '#9b6b43'
   };
 
@@ -131,7 +131,7 @@
     if (COLOR_NAMES[normalized]) return COLOR_NAMES[normalized];
 
     if (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(value)) return value;
-    if (CSS && CSS.supports && CSS.supports('color', value)) return value;
+    if (typeof CSS !== 'undefined' && CSS.supports && CSS.supports('color', value)) return value;
     return null;
   }
 
@@ -190,7 +190,7 @@
       const raw = field.value;
       const ok = applyAccent(raw);
       if (ok) {
-        trySaveColor(raw);
+        trySaveColor(normalizeColorName(raw));
         appendLine('Cor aplicada: ' + raw, 'muted');
       } else {
         appendLine('Cor inválida: ' + raw + '. Tente verde, azul, roxo, vermelho, amarelo, branco, etc.', 'error');
@@ -210,7 +210,7 @@
     row.append(field, applyBtn, resetBtn);
     panel.appendChild(row);
 
-    const hint = createElement('div', 'Sugestões: verde, âmbar, azul, roxo, vermelho, branco, amarelo, rosa, ciano, laranja, cinza, preto.', 'muted');
+    const hint = createElement('div', 'Sugestões: verde, ambar, azul, roxo, vermelho, branco, amarelo, rosa, ciano, laranja, cinza, preto.', 'muted');
     panel.appendChild(hint);
 
     appendBlock(panel);
