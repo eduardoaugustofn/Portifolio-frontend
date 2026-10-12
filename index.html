@@ -63,6 +63,7 @@
       padding: 6px 10px;
       border-radius: 6px;
       cursor: pointer;
+      touch-action: manipulation;
     }
 
     button:hover, button:focus-visible {
@@ -79,6 +80,34 @@
       padding: 0;
       vertical-align: middle;
     }
+
+    .tela-cobrinha {
+      display: block;
+      width: 100%;
+      max-width: 480px;
+      height: auto;
+      margin: 10px 0 8px;
+      border: 1px solid var(--accent-soft);
+      border-radius: 12px;
+      background: #07141a;
+      box-shadow: 0 0 22px rgba(51, 255, 102, 0.08);
+    }
+
+    .controles {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 8px 0;
+    }
+
+    .controles button {
+      width: 56px;
+      height: 48px;
+      font-size: 20px;
+      padding: 0;
+    }
+
+    .controles .espaco { width: 56px; }
 
     form { display: flex; align-items: center; margin-top: 10px; }
 
@@ -125,6 +154,7 @@
       <button data-cmd="certificados">certificados</button>
       <button data-cmd="contato">contato</button>
       <button data-cmd="aparencia">aparencia</button>
+      <button data-cmd="cobrinha">cobrinha</button>
     </div>
 
     <div id="saida"></div>
@@ -184,6 +214,9 @@
     const COR_PADRAO = "#33ff66";
     const CHAVE_COR = "portfolio-cor";
 
+    const COBRINHA = { largura: 24, altura: 14, celula: 20, intervalo: 150 };
+    let jogo = null;
+
     const saida = document.getElementById("saida");
     const formulario = document.getElementById("formulario");
     const entrada = document.getElementById("entrada");
@@ -206,6 +239,20 @@
       const div = document.createElement("div");
       div.className = "bloco";
       saida.appendChild(div);
+      return div;
+    }
+
+    function textoLinha(t) {
+      const div = document.createElement("div");
+      div.className = "linha";
+      div.textContent = t;
+      return div;
+    }
+
+    function textoDestaque(t) {
+      const div = document.createElement("div");
+      div.className = "linha destaque";
+      div.textContent = t;
       return div;
     }
 
@@ -253,6 +300,244 @@
       linha("Cor alterada para " + cor + ".", "destaque");
     }
 
+    /* ---------- Jogo da cobrinha ---------- */
+
+    function corAtual() {
+      return getComputedStyle(document.documentElement).getPropertyValue("--accent").trim() || COR_PADRAO;
+    }
+
+    function retangulo(ctx, x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
+    }
+
+    function novaComida(estado) {
+      let p;
+      do {
+        p = {
+          x: Math.floor(Math.random() * COBRINHA.largura),
+          y: Math.floor(Math.random() * COBRINHA.altura)
+        };
+      } while (estado.cobra.some((s) => s.x === p.x && s.y === p.y));
+      return p;
+    }
+
+    function desenharCobrinha() {
+      const e = jogo;
+      if (!e) return;
+      const ctx = e.ctx;
+      const c = COBRINHA.celula;
+      const cor = corAtual();
+
+      ctx.clearRect(0, 0, e.canvas.width, e.canvas.height);
+
+      // grade sutil
+      ctx.fillStyle = "rgba(255, 255, 255, 0.035)";
+      for (let x = 0; x < COBRINHA.largura; x++) {
+        for (let y = 0; y < COBRINHA.altura; y++) {
+          ctx.beginPath();
+          ctx.arc(x * c + c / 2, y * c + c / 2, 1.2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      // comida com brilho
+      const comidaX = e.comida.x * c + c / 2;
+      const comidaY = e.comida.y * c + c / 2;
+      ctx.save();
+      ctx.shadowColor = "#ffb86c";
+      ctx.shadowBlur = 14;
+      ctx.fillStyle = "#ffb86c";
+      ctx.beginPath();
+      ctx.arc(comidaX, comidaY, c * 0.32, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      // corpo: da cauda até a cabeça, escurecendo em direção à cauda
+      const total = e.cobra.length;
+      for (let i = total - 1; i >= 0; i--) {
+        const s = e.cobra[i];
+        const proporcao = total > 1 ? i / (total - 1) : 0;
+        ctx.save();
+        ctx.globalAlpha = i === 0 ? 1 : 0.35 + 0.65 * (1 - proporcao);
+        ctx.shadowColor = cor;
+        ctx.shadowBlur = i === 0 ? 12 : 4;
+        ctx.fillStyle = cor;
+        retangulo(ctx, s.x * c + 2, s.y * c + 2, c - 4, c - 4, i === 0 ? 7 : 5);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // olhos da cabeça na direção do movimento
+      const cabeca = e.cobra[0];
+      const cx = cabeca.x * c + c / 2;
+      const cy = cabeca.y * c + c / 2;
+      const d = e.dir;
+      const perpX = -d.y;
+      const perpY = d.x;
+      ctx.fillStyle = "#050b0f";
+      [-1, 1].forEach((lado) => {
+        const ox = d.x * 3 + perpX * 3.5 * lado;
+        const oy = d.y * 3 + perpY * 3.5 * lado;
+        ctx.beginPath();
+        ctx.arc(cx + ox, cy + oy, 1.9, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      e.placar.textContent = "Pontos: " + e.pontos;
+    }
+
+    function encerrarCobrinha() {
+      if (jogo && jogo.timer) clearInterval(jogo.timer);
+      if (jogo) jogo.ativo = false;
+    }
+
+    function fimDeJogo() {
+      const e = jogo;
+      encerrarCobrinha();
+      const ctx = e.ctx;
+      ctx.fillStyle = "rgba(5, 11, 15, 0.7)";
+      ctx.fillRect(0, 0, e.canvas.width, e.canvas.height);
+      ctx.fillStyle = corAtual();
+      ctx.font = "bold 22px Courier New, monospace";
+      ctx.textAlign = "center";
+      ctx.fillText("Fim de jogo", e.canvas.width / 2, e.canvas.height / 2 - 6);
+      ctx.font = "16px Courier New, monospace";
+      ctx.fillText("Pontos: " + e.pontos, e.canvas.width / 2, e.canvas.height / 2 + 20);
+      e.placar.textContent = "Digite cobrinha para jogar de novo.";
+      e.placar.className = "linha destaque";
+      rolar();
+    }
+
+    function passoCobrinha() {
+      const e = jogo;
+      if (!e || !e.ativo) return;
+      e.dir = e.proxDir;
+      const cabeca = e.cobra[0];
+      const nova = { x: cabeca.x + e.dir.x, y: cabeca.y + e.dir.y };
+
+      const bateuParede =
+        nova.x < 0 || nova.y < 0 || nova.x >= COBRINHA.largura || nova.y >= COBRINHA.altura;
+      const bateuNoCorpo = e.cobra.some((s) => s.x === nova.x && s.y === nova.y);
+      if (bateuParede || bateuNoCorpo) {
+        fimDeJogo();
+        return;
+      }
+
+      e.cobra.unshift(nova);
+      if (nova.x === e.comida.x && nova.y === e.comida.y) {
+        e.pontos++;
+        e.comida = novaComida(e);
+      } else {
+        e.cobra.pop();
+      }
+      desenharCobrinha();
+    }
+
+    function mudarDirecao(dx, dy) {
+      if (!jogo || !jogo.ativo) return;
+      if (dx === -jogo.dir.x && dy === -jogo.dir.y) return;
+      jogo.proxDir = { x: dx, y: dy };
+    }
+
+    function iniciarCobrinha() {
+      encerrarCobrinha();
+
+      const b = bloco();
+      b.appendChild(textoDestaque("Cobrinha"));
+      b.appendChild(textoLinha("Use as setas do teclado ou os botões. Digite sair para parar."));
+
+      const canvas = document.createElement("canvas");
+      canvas.className = "tela-cobrinha";
+      canvas.width = COBRINHA.largura * COBRINHA.celula;
+      canvas.height = COBRINHA.altura * COBRINHA.celula;
+      canvas.setAttribute("role", "img");
+      canvas.setAttribute("aria-label", "Tabuleiro do jogo da cobrinha");
+      b.appendChild(canvas);
+
+      const placar = textoLinha("");
+      b.appendChild(placar);
+
+      const controles = document.createElement("div");
+      controles.className = "controles";
+      const botoes = [
+        ["↑", 0, -1],
+        ["←", -1, 0],
+        ["→", 1, 0],
+        ["↓", 0, 1]
+      ];
+      const linhaSuperior = document.createElement("div");
+      linhaSuperior.className = "controles";
+      linhaSuperior.style.margin = "0";
+      const espaco = document.createElement("span");
+      espaco.className = "espaco";
+      linhaSuperior.appendChild(espaco);
+      const cima = criarBotaoSeta(botoes[0]);
+      linhaSuperior.appendChild(cima);
+      b.appendChild(linhaSuperior);
+
+      const linhaInferior = document.createElement("div");
+      linhaInferior.className = "controles";
+      linhaInferior.style.margin = "0";
+      linhaInferior.appendChild(criarBotaoSeta(botoes[1]));
+      linhaInferior.appendChild(criarBotaoSeta(botoes[3]));
+      linhaInferior.appendChild(criarBotaoSeta(botoes[2]));
+      b.appendChild(linhaInferior);
+
+      const inicio = {
+        x: Math.floor(COBRINHA.largura / 2),
+        y: Math.floor(COBRINHA.altura / 2)
+      };
+      const estado = {
+        cobra: [inicio, { x: inicio.x - 1, y: inicio.y }, { x: inicio.x - 2, y: inicio.y }],
+        dir: { x: 1, y: 0 },
+        proxDir: { x: 1, y: 0 },
+        pontos: 0,
+        comida: null,
+        ativo: true,
+        timer: null,
+        canvas: canvas,
+        ctx: canvas.getContext("2d"),
+        placar: placar
+      };
+      estado.comida = novaComida(estado);
+      jogo = estado;
+      desenharCobrinha();
+      estado.timer = setInterval(passoCobrinha, COBRINHA.intervalo);
+      rolar();
+    }
+
+    function criarBotaoSeta([rotulo, dx, dy]) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = rotulo;
+      btn.setAttribute("aria-label", "Mover");
+      btn.addEventListener("click", () => mudarDirecao(dx, dy));
+      return btn;
+    }
+
+    document.addEventListener("keydown", (evento) => {
+      if (!jogo || !jogo.ativo) return;
+      const direcoes = {
+        ArrowUp: [0, -1],
+        ArrowDown: [0, 1],
+        ArrowLeft: [-1, 0],
+        ArrowRight: [1, 0]
+      };
+      const d = direcoes[evento.key];
+      if (d) {
+        evento.preventDefault();
+        mudarDirecao(d[0], d[1]);
+      }
+    });
+
+    /* ---------- Comandos ---------- */
+
     const comandos = {
       ajuda() {
         linha("Comandos disponíveis:", "destaque");
@@ -262,6 +547,8 @@
         linha("  certificados   certificações");
         linha("  contato        formas de contato");
         linha("  aparencia      trocar a cor do terminal");
+        linha("  cobrinha       jogo da cobrinha");
+        linha("  sair           para o jogo da cobrinha");
         linha("  limpar         limpa a tela");
       },
 
@@ -283,18 +570,12 @@
 
       projetos() {
         const b = bloco();
-        const titulo = document.createElement("div");
-        titulo.className = "linha destaque";
-        titulo.textContent = "Projetos (do mais antigo ao mais recente)";
-        b.appendChild(titulo);
+        b.appendChild(textoDestaque("Projetos (do mais antigo ao mais recente)"));
 
         DADOS.projetos.forEach((p) => {
           const item = document.createElement("div");
           item.className = "projeto";
-          const nome = document.createElement("div");
-          nome.className = "linha destaque";
-          nome.textContent = p.ano + " | " + p.nome;
-          item.appendChild(nome);
+          item.appendChild(textoDestaque(p.ano + " | " + p.nome));
           item.appendChild(textoLinha(p.descricao));
           if (p.tecnologias.length) {
             item.appendChild(textoLinha("Tecnologias: " + p.tecnologias.join(", ")));
@@ -395,24 +676,24 @@
         rolar();
       },
 
+      cobrinha() {
+        iniciarCobrinha();
+      },
+
+      sair() {
+        if (jogo && jogo.ativo) {
+          encerrarCobrinha();
+          linha("Jogo encerrado. Pontos: " + jogo.pontos + ".", "destaque");
+        } else {
+          linha("Nenhum jogo em andamento.", "muted");
+        }
+      },
+
       limpar() {
+        encerrarCobrinha();
         saida.innerHTML = "";
       }
     };
-
-    function textoLinha(t) {
-      const div = document.createElement("div");
-      div.className = "linha";
-      div.textContent = t;
-      return div;
-    }
-
-    function textoDestaque(t) {
-      const div = document.createElement("div");
-      div.className = "linha destaque";
-      div.textContent = t;
-      return div;
-    }
 
     function executar(texto) {
       const entradaLimpa = texto.trim();
@@ -454,7 +735,7 @@
     });
 
     terminal.addEventListener("click", (evento) => {
-      if (evento.target.closest("button, a, input")) return;
+      if (evento.target.closest("button, a, input, canvas")) return;
       entrada.focus();
     });
 
