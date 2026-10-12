@@ -1,594 +1,400 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Eduardo Augusto | Portfólio</title>
-  <style>
-    * { box-sizing: border-box; }
+// script.js - controla o terminal, renderiza seções e gerencia aparência
+(function(){
+  // Elements
+  const output = document.getElementById('output');
+  const form = document.getElementById('cli');
+  const input = document.getElementById('input');
+  const terminal = document.getElementById('terminal');
+  const navButtons = Array.from(document.querySelectorAll('.nav-btn'));
 
-    :root {
-      --bg: #050b0f;
-      --bg-panel: #09171b;
-      --bg-panel-2: #0f1f26;
-      --text: #d9f9e8;
-      --muted: #7adbb1;
-      --accent: #7af0c6;
-      --accent-2: #a0f6cb;
-      --line: rgba(122, 240, 198, 0.28);
-      --warning: #ffb86c;
-      --error: #ff6a6a;
-      --shadow: 0 0 18px rgba(122, 240, 198, 0.15);
-    }
-
-    html, body {
-      margin: 0;
-      min-height: 100%;
-      background: var(--bg);
-      color: var(--text);
-      font-family: "Courier New", Courier, monospace;
-      font-size: 16px;
-      line-height: 1.6;
-    }
-
-    body {
-      background-image:
-        radial-gradient(circle at top, rgba(122, 240, 198, 0.08), transparent 30%),
-        linear-gradient(180deg, #050b0f 0%, #09171b 100%);
-    }
-
-    a {
-      color: var(--accent);
-      text-decoration: none;
-    }
-
-    a:hover, a:focus-visible {
-      text-decoration: underline;
-    }
-
-    img {
-      max-width: 100%;
-      display: block;
-      border: 1px solid var(--line);
-      border-radius: 8px;
-      margin-top: 10px;
-    }
-
-    .container {
-      width: min(1100px, calc(100% - 24px));
-      margin: 0 auto;
-    }
-
-    .term-header {
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      background: rgba(5, 11, 15, 0.9);
-      border-bottom: 1px solid var(--line);
-      backdrop-filter: blur(6px);
-    }
-
-    .term-header-inner {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      min-height: 58px;
-      padding: 8px 0;
-    }
-
-    .brand {
-      color: var(--accent);
-      font-weight: 700;
-      letter-spacing: 0.04em;
-      white-space: nowrap;
-    }
-
-    .mini-nav {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-
-    .nav-btn {
-      background: transparent;
-      border: 1px solid var(--line);
-      color: var(--text);
-      font: inherit;
-      padding: 6px 10px;
-      border-radius: 999px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-
-    .nav-btn:hover, .nav-btn:focus-visible {
-      background: rgba(122, 240, 198, 0.08);
-      border-color: rgba(122, 240, 198, 0.5);
-      outline: none;
-    }
-
-    .terminal {
-      padding: 20px 0 40px;
-      min-height: calc(100vh - 58px);
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    .line {
-      margin: 4px 0;
-      white-space: pre-wrap;
-      word-break: break-word;
-    }
-
-    .dim { color: #86d1ae; }
-    .muted { color: var(--muted); }
-    .highlight { color: var(--accent-2); font-weight: bold; }
-    .error { color: var(--error); }
-    .warning { color: var(--warning); }
-
-    .output {
-      margin-top: 10px;
-    }
-
-    .block {
-      margin: 14px 0 18px;
-      padding-left: 8px;
-      border-left: 2px solid var(--line);
-    }
-
-    .cmdline {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-top: 10px;
-      padding-top: 4px;
-      width: 100%;
-    }
-
-    .prompt {
-      white-space: nowrap;
-      color: var(--accent);
-      font-weight: 700;
-    }
-
-    .input-wrap {
-      display: flex;
-      align-items: center;
-      flex: 1;
-      min-width: 0;
-    }
-
-    #input {
-      flex: 1;
-      min-width: 0;
-      background: transparent;
-      border: none;
-      color: var(--text);
-      font: inherit;
-      font-size: 16px;
-      outline: none;
-      padding: 6px 0;
-    }
-
-    .cursor {
-      display: inline-block;
-      width: 10px;
-      height: 1.05em;
-      background: var(--accent);
-      animation: blink 1s steps(1) infinite;
-      vertical-align: text-bottom;
-      margin-left: 2px;
-    }
-
-    @keyframes blink { 50% { opacity: 0; } }
-
-    .card {
-      margin-top: 8px;
-      padding: 12px 0;
-    }
-
-    .card h3 {
-      margin: 0 0 8px;
-      color: var(--accent-2);
-    }
-
-    .project-list, .experience-list, .contact-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
-
-    .project-item, .experience-item {
-      margin: 10px 0 14px;
-      padding: 10px 0;
-      border-top: 1px solid var(--line);
-    }
-
-    .project-item:first-child, .experience-item:first-child {
-      border-top: none;
-      padding-top: 0;
-    }
-
-    .project-meta, .period {
-      color: var(--muted);
-      margin-bottom: 6px;
-      font-size: 0.95em;
-    }
-
-    .contact-list li {
-      margin-bottom: 8px;
-    }
-
-    @media (max-width: 640px) {
-      .term-header-inner {
-        flex-direction: column;
-        align-items: flex-start;
-        padding: 10px 0 12px;
-      }
-
-      .mini-nav {
-        width: 100%;
-      }
-
-      .nav-btn {
-        flex: 1 1 48%;
-        text-align: center;
-      }
-
-      .cmdline {
-        align-items: flex-start;
-      }
-
-      .prompt {
-        padding-top: 4px;
-      }
-    }
-  </style>
-</head>
-<body>
-  <header class="term-header">
-    <div class="container term-header-inner">
-      <div class="brand">eduardo@portfolio:~$</div>
-      <nav class="mini-nav" aria-label="Comandos rápidos">
-        <button class="nav-btn" data-cmd="sobre">sobre</button>
-        <button class="nav-btn" data-cmd="projetos">projetos</button>
-        <button class="nav-btn" data-cmd="experiencias">experiencias</button>
-        <button class="nav-btn" data-cmd="contato">contato</button>
-      </nav>
-    </div>
-  </header>
-
-  <main class="terminal" id="terminal">
-    <div class="container">
-      <div class="line dim">Portfólio de Eduardo Augusto Freitas Nogueira</div>
-      <div class="line dim">Digite <span class="highlight">ajuda</span> para ver os comandos.</div>
-      <div id="output" class="output"></div>
-
-      <form id="cli" class="cmdline" autocomplete="off">
-        <label for="input" class="prompt">eduardo@portfolio:~$</label>
-        <div class="input-wrap">
-          <input id="input" type="text" name="input" autocapitalize="off" autocomplete="off" autocorrect="off" spellcheck="false" autofocus>
-          <span class="cursor" aria-hidden="true"></span>
-        </div>
-      </form>
-    </div>
-  </main>
-
-  <script>
-    const saida = document.getElementById('output');
-    const form = document.getElementById('cli');
-    const input = document.getElementById('input');
-    const terminal = document.getElementById('terminal');
-
-    const dados = {
-      pt: {
-        nome: 'Eduardo Augusto Freitas Nogueira',
-        formacao: 'Formação em Ciência da Computação na PUC Minas.',
-        atuacao: 'Atuação em desenvolvimento web Front-end, interfaces responsivas, acessibilidade e experiência do usuário.',
-        interesses: 'Interesses em Front-end, UX/UI, desenvolvimento de interfaces, produtos digitais e soluções acessíveis.',
-        objetivo: 'Objetivo profissional: evoluir como desenvolvedor front-end e contribuir em projetos com impacto real.',
-        experiencia: [
-          { empresa: 'PUC Minas', cargo: 'Estudante / Atividades acadêmicas', periodo: '202x — atual', descricao: 'Participação em projetos acadêmicos e atividades relacionadas a tecnologia, desenvolvimento web e ciência da computação.' },
-          { empresa: 'Projetos pessoais', cargo: 'Desenvolvimento de interfaces e protótipos', periodo: '202x — atual', descricao: 'Criação de páginas e interfaces voltadas para usabilidade, responsividade e apresentação visual clara.' }
-        ],
-        projetos: [
-          { nome: 'Portfólio pessoal', ano: '202x', descricao: 'Site pessoal com foco em apresentação profissional e comunicação visual clara.', tecnologias: ['HTML', 'CSS', 'JavaScript'], repo: 'https://github.com/eduardoaugustofn/Portifolio-frontend', imagem: 'https://via.placeholder.com/800x420?text=Portfolio' },
-          { nome: 'Projeto web acadêmico', ano: '202x', descricao: 'Aplicação ou protótipo desenvolvido em contexto acadêmico para exercícios e testes de interface e front-end.', tecnologias: ['HTML', 'CSS', 'JavaScript'], repo: 'https://github.com/eduardoaugustofn', imagem: 'https://via.placeholder.com/800x420?text=Projeto+Academico' }
-        ],
-        contato: {
-          email: 'eduardo@example.com',
-          github: 'https://github.com/eduardoaugustofn',
-          linkedin: 'https://www.linkedin.com/in/eduardoaugustofn'
+  // Dados reais solicitados
+  const DATA = {
+    pt: {
+      nome: 'Eduardo Augusto Freitas Nogueira',
+      formacao: 'estudante de Ciência da Computação na PUC Minas, em Belo Horizonte, no primeiro período.',
+      interesses: 'desenvolvimento web, front-end, jogos e interfaces acessíveis.',
+      objetivo: 'tornar-se Full Stack Developer até 2030 e conseguir um estágio na área até 2028.',
+      experiencia: [],
+      projetos: [
+        {
+          nome: 'Heróis da Saúde',
+          ano: '2026',
+          descricao: 'jogo educativo sobre saúde, desenvolvido como projeto interdisciplinar entre Computação e Medicina na PUC Minas.',
+          tecnologias: '[preencher depois]',
+          repo: '',
+          imagem: ''
         }
-      },
-      en: {
-        nome: 'Eduardo Augusto Freitas Nogueira',
-        formacao: 'Computer Science student at PUC Minas.',
-        atuacao: 'Focused on front-end development, responsive interfaces, accessibility and user experience.',
-        interesses: 'Interests include front-end, UX/UI, web interfaces, digital products and accessible solutions.',
-        objetivo: 'Professional goal: grow as a front-end developer and contribute to projects with real impact.',
-        experiencia: [
-          { empresa: 'PUC Minas', cargo: 'Student / Academic activities', periodo: '202x — current', descricao: 'Participation in academic projects and activities related to technology, web development and computer science.' },
-          { empresa: 'Personal projects', cargo: 'Interface and prototype development', periodo: '202x — current', descricao: 'Creating pages and interfaces focused on usability, responsiveness and clear visual communication.' }
-        ],
-        projetos: [
-          { nome: 'Personal portfolio', ano: '202x', descricao: 'Personal website focused on professional presentation and clear visual communication.', tecnologias: ['HTML', 'CSS', 'JavaScript'], repo: 'https://github.com/eduardoaugustofn/Portifolio-frontend', imagem: 'https://via.placeholder.com/800x420?text=Portfolio' },
-          { nome: 'Academic web project', ano: '202x', descricao: 'Application or prototype developed in an academic setting for front-end and interface testing.', tecnologias: ['HTML', 'CSS', 'JavaScript'], repo: 'https://github.com/eduardoaugustofn', imagem: 'https://via.placeholder.com/800x420?text=Academic+Project' }
-        ],
-        contato: {
-          email: 'eduardo@example.com',
-          github: 'https://github.com/eduardoaugustofn',
-          linkedin: 'https://www.linkedin.com/in/eduardoaugustofn'
-        }
+      ],
+      certificados: [
+        { nome: 'Inglês C1', instituicao: 'Wimbledon School of English', ano: '2024' }
+      ],
+      contato: {
+        email: 'eduafn2008@gmail.com',
+        github: 'https://github.com/eduardoaugustofn',
+        linkedin: 'https://br.linkedin.com/in/eduardo-augusto-freitas-nogueira-948112350'
       }
-    };
-
-    function appendLine(text, classe = '') {
-      const div = document.createElement('div');
-      div.className = 'line ' + classe;
-      div.textContent = text;
-      saida.appendChild(div);
-      rolar();
-      return div;
-    }
-
-    function appendBlock(content) {
-      const div = document.createElement('div');
-      div.className = 'block';
-      div.appendChild(content);
-      saida.appendChild(div);
-      rolar();
-      return div;
-    }
-
-    function link(url, text = url) {
-      const a = document.createElement('a');
-      a.href = url;
-      a.target = '_blank';
-      a.rel = 'noopener noreferrer';
-      a.textContent = text;
-      return a;
-    }
-
-    function createLabel(text, className = '') {
-      const el = document.createElement('div');
-      el.className = 'line ' + className;
-      el.textContent = text;
-      return el;
-    }
-
-    function rolar() {
-      terminal.scrollTop = terminal.scrollHeight;
-    }
-
-    function renderSobre() {
-      const bloco = document.createElement('div');
-      bloco.className = 'block';
-
-      const pt = document.createElement('div');
-      pt.className = 'line highlight';
-      pt.textContent = '[PT]';
-      bloco.appendChild(pt);
-
-      bloco.appendChild(createLabel('Nome: ' + dados.pt.nome));
-      bloco.appendChild(createLabel('Formação: ' + dados.pt.formacao));
-      bloco.appendChild(createLabel('Atuação: ' + dados.pt.atuacao));
-      bloco.appendChild(createLabel('Interesses: ' + dados.pt.interesses));
-      bloco.appendChild(createLabel('Objetivo: ' + dados.pt.objetivo));
-
-      const en = document.createElement('div');
-      en.className = 'line highlight';
-      en.textContent = '[EN]';
-      bloco.appendChild(en);
-
-      bloco.appendChild(createLabel('Name: ' + dados.en.nome));
-      bloco.appendChild(createLabel('Education: ' + dados.en.formacao));
-      bloco.appendChild(createLabel('Focus: ' + dados.en.atuacao));
-      bloco.appendChild(createLabel('Interests: ' + dados.en.interesses));
-      bloco.appendChild(createLabel('Goal: ' + dados.en.objetivo));
-
-      saida.appendChild(bloco);
-      rolar();
-    }
-
-    function renderProjetos() {
-      const bloco = document.createElement('div');
-      bloco.className = 'block';
-
-      const titulo = document.createElement('div');
-      titulo.className = 'line highlight';
-      titulo.textContent = 'Projetos';
-      bloco.appendChild(titulo);
-
-      const list = document.createElement('ul');
-      list.className = 'project-list';
-
-      dados.pt.projetos.forEach((projeto) => {
-        const item = document.createElement('li');
-        item.className = 'project-item';
-
-        const nome = document.createElement('div');
-        nome.className = 'line highlight';
-        nome.textContent = projeto.nome + ' (' + projeto.ano + ')';
-        item.appendChild(nome);
-
-        const descricao = document.createElement('div');
-        descricao.className = 'line';
-        descricao.textContent = projeto.descricao;
-        item.appendChild(descricao);
-
-        const tech = document.createElement('div');
-        tech.className = 'line muted';
-        tech.textContent = 'Tecnologias: ' + projeto.tecnologias.join(', ');
-        item.appendChild(tech);
-
-        const repo = document.createElement('div');
-        repo.className = 'line';
-        repo.appendChild(document.createTextNode('Repositório: '));
-        repo.appendChild(link(projeto.repo, 'GitHub'));
-        item.appendChild(repo);
-
-        if (projeto.imagem) {
-          const img = document.createElement('img');
-          img.src = projeto.imagem;
-          img.alt = 'Imagem do projeto ' + projeto.nome;
-          item.appendChild(img);
+    },
+    en: {
+      nome: 'Eduardo Augusto Freitas Nogueira',
+      formacao: 'Computer Science student at PUC Minas, Belo Horizonte, in the first semester.',
+      interesses: 'web development, front-end, games and accessible interfaces.',
+      objetivo: 'become a Full Stack Developer by 2030 and secure a development internship by 2028.',
+      experiencia: [],
+      projetos: [
+        {
+          nome: 'Heróis da Saúde',
+          ano: '2026',
+          descricao: 'educational health game developed as an interdisciplinary project between Computing and Medicine at PUC Minas.',
+          tecnologias: '[preencher depois]',
+          repo: '',
+          imagem: ''
         }
+      ],
+      certificados: [
+        { nome: 'English C1', instituicao: 'Wimbledon School of English', ano: '2024' }
+      ],
+      contato: {
+        email: 'eduafn2008@gmail.com',
+        github: 'https://github.com/eduardoaugustofn',
+        linkedin: 'https://br.linkedin.com/in/eduardo-augusto-freitas-nogueira-948112350'
+      }
+    }
+  };
 
-        list.appendChild(item);
+  function appendLine(text, cls){
+    const d = document.createElement('div');
+    d.className = 'line' + (cls ? ' ' + cls : '');
+    d.textContent = text;
+    output.appendChild(d);
+    scrollEnd();
+    return d;
+  }
+
+  function appendBlock(node){
+    const wrapper = document.createElement('div');
+    wrapper.className = 'block';
+    wrapper.appendChild(node);
+    output.appendChild(wrapper);
+    scrollEnd();
+    return wrapper;
+  }
+
+  function createElement(tag, text, cls){
+    const el = document.createElement(tag);
+    if(cls) el.className = cls;
+    if(text !== undefined) el.textContent = text;
+    return el;
+  }
+
+  function link(url, text){
+    const a = document.createElement('a');
+    a.href = url;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    a.textContent = text || url;
+    return a;
+  }
+
+  function scrollEnd(){
+    terminal.scrollTop = terminal.scrollHeight;
+  }
+
+  // Aparência / temas
+  const DEFAULT_COLOR = '#7af0c6';
+  const STORAGE_KEY = 'portfolio_accent_color';
+
+  function trySaveColor(color){
+    try { localStorage.setItem(STORAGE_KEY, color); } catch (e) {}
+  }
+
+  function tryLoadColor(){
+    try { return localStorage.getItem(STORAGE_KEY); } catch (e) { return null; }
+  }
+
+  function applyAccent(color){
+    if(!color) return;
+    document.documentElement.style.setProperty('--accent', color);
+    document.documentElement.style.setProperty('--accent-2', color);
+    const cursor = document.querySelector('.cursor');
+    if(cursor) cursor.style.background = color;
+  }
+
+  function renderAparencia(){
+    const panel = document.createElement('div');
+    panel.className = 'appear-panel';
+
+    panel.appendChild(createElement('div', 'Aparência — escolha a cor do texto e dos destaques', 'muted'));
+
+    const colorOptions = [
+      { name: 'Verde (padrão)', hex: '#7af0c6' },
+      { name: 'Âmbar', hex: '#ffb86c' },
+      { name: 'Azul', hex: '#6cb8ff' },
+      { name: 'Roxo', hex: '#c49cff' },
+      { name: 'Vermelho', hex: '#ff6a6a' },
+      { name: 'Branco', hex: '#e6e6e6' }
+    ];
+
+    const row = document.createElement('div');
+    row.className = 'color-row';
+    colorOptions.forEach(opt => {
+      const sw = document.createElement('button');
+      sw.className = 'color-swatch';
+      sw.title = opt.name + ' ' + opt.hex;
+      sw.setAttribute('aria-label', opt.name + ' ' + opt.hex);
+      sw.style.background = opt.hex;
+      sw.addEventListener('click', () => {
+        applyAccent(opt.hex);
+        trySaveColor(opt.hex);
+        document.querySelectorAll('.color-swatch').forEach(b => b.style.boxShadow = '0 6px 14px rgba(0,0,0,0.35)');
+        sw.style.boxShadow = '0 0 0 3px rgba(255,255,255,0.06), inset 0 -2px 8px rgba(0,0,0,0.18)';
       });
+      row.appendChild(sw);
+    });
+    panel.appendChild(row);
 
-      bloco.appendChild(list);
-      saida.appendChild(bloco);
-      rolar();
-    }
+    const customRow = document.createElement('div');
+    customRow.className = 'controls';
+    const colorLabel = createElement('div', 'Cor personalizada:', 'muted');
+    const colorInput = document.createElement('input');
+    colorInput.type = 'color';
+    colorInput.value = (tryLoadColor() || DEFAULT_COLOR);
+    colorInput.title = 'Escolha cor personalizada';
+    colorInput.addEventListener('input', () => {
+      applyAccent(colorInput.value);
+    });
+    colorInput.addEventListener('change', () => {
+      trySaveColor(colorInput.value);
+      document.querySelectorAll('.color-swatch').forEach(b => b.style.boxShadow = '0 6px 14px rgba(0,0,0,0.35)');
+    });
 
-    function renderExperiencias() {
-      const bloco = document.createElement('div');
-      bloco.className = 'block';
+    customRow.appendChild(colorLabel);
+    customRow.appendChild(colorInput);
+    panel.appendChild(customRow);
 
-      const titulo = document.createElement('div');
-      titulo.className = 'line highlight';
-      titulo.textContent = 'Experiencias';
-      bloco.appendChild(titulo);
+    const controls = document.createElement('div');
+    controls.className = 'controls';
+    const restore = document.createElement('button');
+    restore.className = 'btn small';
+    restore.textContent = 'restaurar padrão';
+    restore.addEventListener('click', () => {
+      applyAccent(DEFAULT_COLOR);
+      trySaveColor(DEFAULT_COLOR);
+      colorInput.value = DEFAULT_COLOR;
+      document.querySelectorAll('.color-swatch').forEach(b => b.style.boxShadow = '0 6px 14px rgba(0,0,0,0.35)');
+    });
+    controls.appendChild(restore);
 
-      const list = document.createElement('ul');
-      list.className = 'experience-list';
+    const info = document.createElement('div');
+    info.className = 'muted';
+    info.textContent = 'A cor é salva no seu navegador (localStorage).';
+    panel.appendChild(controls);
+    panel.appendChild(info);
 
-      dados.pt.experiencia.forEach((itemData) => {
-        const item = document.createElement('li');
-        item.className = 'experience-item';
+    appendBlock(panel);
+  }
 
-        const nome = document.createElement('div');
-        nome.className = 'line highlight';
-        nome.textContent = itemData.empresa + ' — ' + itemData.cargo;
-        item.appendChild(nome);
+  // Render functions
+  function renderSobre(){
+    const box = document.createElement('div');
+    box.className = 'block';
 
-        const periodo = document.createElement('div');
-        periodo.className = 'line period';
-        periodo.textContent = itemData.periodo;
-        item.appendChild(periodo);
+    box.appendChild(createElement('div', '[PT]', 'line highlight'));
+    box.appendChild(createElement('div', 'Nome: ' + DATA.pt.nome, 'line'));
+    box.appendChild(createElement('div', 'Formação: ' + DATA.pt.formacao, 'line'));
+    box.appendChild(createElement('div', 'Interesses: ' + DATA.pt.interesses, 'line'));
+    box.appendChild(createElement('div', 'Objetivo: ' + DATA.pt.objetivo, 'line'));
 
-        const desc = document.createElement('div');
-        desc.className = 'line';
-        desc.textContent = itemData.descricao;
-        item.appendChild(desc);
+    box.appendChild(createElement('div', '[EN]', 'line highlight'));
+    box.appendChild(createElement('div', 'Name: ' + DATA.en.nome, 'line'));
+    box.appendChild(createElement('div', 'Education: ' + DATA.en.formacao, 'line'));
+    box.appendChild(createElement('div', 'Interests: ' + DATA.en.interesses, 'line'));
+    box.appendChild(createElement('div', 'Goal: ' + DATA.en.objetivo, 'line'));
 
-        list.appendChild(item);
+    output.appendChild(box);
+    scrollEnd();
+  }
+
+  function renderProjetos(){
+    const box = document.createElement('div');
+    box.className = 'block';
+    box.appendChild(createElement('div', 'Projetos', 'line highlight'));
+
+    const ul = document.createElement('ul');
+    ul.className = 'project-list';
+
+    DATA.pt.projetos.forEach(p => {
+      const li = document.createElement('li');
+      li.className = 'project-item';
+
+      const name = createElement('div', p.nome + ' (' + p.ano + ')', 'line highlight');
+      li.appendChild(name);
+      li.appendChild(createElement('div', p.descricao, 'line'));
+      li.appendChild(createElement('div', 'Tecnologias: ' + p.tecnologias, 'line muted'));
+
+      if(p.repo && p.repo.trim() !== ''){
+        const repoLine = document.createElement('div');
+        repoLine.className = 'line';
+        repoLine.appendChild(document.createTextNode('Repositório: '));
+        repoLine.appendChild(link(p.repo, 'GitHub'));
+        li.appendChild(repoLine);
+      }
+
+      if(p.imagem && p.imagem.trim() !== ''){
+        const img = document.createElement('img');
+        img.src = p.imagem;
+        img.alt = 'Imagem do projeto ' + p.nome;
+        li.appendChild(img);
+      }
+
+      ul.appendChild(li);
+    });
+
+    box.appendChild(ul);
+    output.appendChild(box);
+    scrollEnd();
+  }
+
+  function renderExperiencias(){
+    const box = document.createElement('div');
+    box.className = 'block';
+    box.appendChild(createElement('div', 'Experiências', 'line highlight'));
+
+    if(!DATA.pt.experiencia || DATA.pt.experiencia.length === 0){
+      box.appendChild(createElement('div', 'Em breve', 'line muted'));
+    } else {
+      const ul = document.createElement('ul');
+      ul.className = 'experience-list';
+      DATA.pt.experiencia.forEach(it => {
+        const li = document.createElement('li');
+        li.className = 'experience-item';
+        li.appendChild(createElement('div', it.empresa + ' — ' + it.cargo, 'line highlight'));
+        li.appendChild(createElement('div', it.periodo, 'line period'));
+        li.appendChild(createElement('div', it.descricao, 'line'));
+        ul.appendChild(li);
       });
-
-      bloco.appendChild(list);
-      saida.appendChild(bloco);
-      rolar();
+      box.appendChild(ul);
     }
 
-    function renderContato() {
-      const bloco = document.createElement('div');
-      bloco.className = 'block';
+    output.appendChild(box);
+    scrollEnd();
+  }
 
-      const titulo = document.createElement('div');
-      titulo.className = 'line highlight';
-      titulo.textContent = 'Contato';
-      bloco.appendChild(titulo);
+  function renderCertificados(){
+    const box = document.createElement('div');
+    box.className = 'block';
+    box.appendChild(createElement('div', 'Certificados', 'line highlight'));
 
-      const list = document.createElement('ul');
-      list.className = 'contact-list';
+    const ul = document.createElement('ul');
+    ul.className = 'cert-list';
+    DATA.pt.certificados.forEach(c => {
+      const li = document.createElement('li');
+      li.className = 'line';
+      li.textContent = c.nome + ', ' + c.instituicao + ', ' + c.ano + '.';
+      ul.appendChild(li);
+    });
 
-      const email = document.createElement('li');
-      email.textContent = 'E-mail: ';
-      email.appendChild(link('mailto:' + dados.pt.contato.email, dados.pt.contato.email));
-      list.appendChild(email);
+    box.appendChild(ul);
+    output.appendChild(box);
+    scrollEnd();
+  }
 
-      const github = document.createElement('li');
-      github.textContent = 'GitHub: ';
-      github.appendChild(link(dados.pt.contato.github, 'github.com/eduardoaugustofn'));
-      list.appendChild(github);
+  function renderContato(){
+    const box = document.createElement('div');
+    box.className = 'block';
+    box.appendChild(createElement('div', 'Contato', 'line highlight'));
 
-      const linkedin = document.createElement('li');
-      linkedin.textContent = 'LinkedIn: ';
-      linkedin.appendChild(link(dados.pt.contato.linkedin, 'linkedin.com/in/eduardoaugustofn'));
-      list.appendChild(linkedin);
+    const ul = document.createElement('ul');
+    ul.className = 'contact-list';
 
-      bloco.appendChild(list);
-      saida.appendChild(bloco);
-      rolar();
+    const email = document.createElement('li');
+    email.className = 'line';
+    email.appendChild(document.createTextNode('E-mail: '));
+    email.appendChild(link('mailto:' + DATA.pt.contato.email, DATA.pt.contato.email));
+    ul.appendChild(email);
+
+    const gh = document.createElement('li');
+    gh.className = 'line';
+    gh.appendChild(document.createTextNode('GitHub: '));
+    gh.appendChild(link(DATA.pt.contato.github, DATA.pt.contato.github.replace(/^https?:\/\//, '')));
+    ul.appendChild(gh);
+
+    const li = document.createElement('li');
+    li.className = 'line';
+    li.appendChild(document.createTextNode('LinkedIn: '));
+    li.appendChild(link(DATA.pt.contato.linkedin, DATA.pt.contato.linkedin.replace(/^https?:\/\//, '')));
+    ul.appendChild(li);
+
+    box.appendChild(ul);
+    output.appendChild(box);
+    scrollEnd();
+  }
+
+  // Comandos
+  const COMMANDS = {
+    'ajuda': function(){
+      appendLine('Comandos disponíveis:', 'highlight');
+      appendLine('  sobre          apresentação (PT/EN)');
+      appendLine('  projetos       lista de projetos');
+      appendLine('  experiencias   experiências profissionais');
+      appendLine('  certificados   certificados');
+      appendLine('  contato        formas de contato');
+      appendLine('  aparencia      painel de aparências (cores)');
+      appendLine('  limpar         limpa a tela');
+    },
+    'sobre': function(){ renderSobre(); },
+    'projetos': function(){ renderProjetos(); },
+    'experiencias': function(){ renderExperiencias(); },
+    'certificados': function(){ renderCertificados(); },
+    'contato': function(){ renderContato(); },
+    'aparencia': function(){ renderAparencia(); },
+    'limpar': function(){ output.innerHTML = ''; }
+  };
+
+  function execCommand(text){
+    const cmd = (text || '').trim().toLowerCase();
+    appendLine('eduardo@portfolio:~$ ' + (text || ''), 'muted');
+
+    if(!cmd) return;
+    if(!COMMANDS[cmd]){
+      appendLine('Comando não encontrado: ' + cmd + '. Digite "ajuda".', 'error');
+      return;
     }
+    COMMANDS[cmd]();
+  }
 
-    const comandos = {
-      ajuda() {
-        appendLine('Comandos disponíveis:', 'highlight');
-        appendLine('  sobre          apresentação');
-        appendLine('  projetos       lista de projetos');
-        appendLine('  experiencias   experiências');
-        appendLine('  contato        contato');
-        appendLine('  limpar         limpa a tela');
-      },
+  form.addEventListener('submit', (ev) => {
+    ev.preventDefault();
+    execCommand(input.value);
+    input.value = '';
+    input.focus();
+  });
 
-      sobre() {
-        renderSobre();
-      },
-
-      projetos() {
-        renderProjetos();
-      },
-
-      experiencias() {
-        renderExperiencias();
-      },
-
-      contato() {
-        renderContato();
-      },
-
-      limpar() {
-        saida.innerHTML = '';
-      }
-    };
-
-    function executar(texto) {
-      const cmd = texto.trim().toLowerCase();
-      appendLine('eduardo@portfolio:~$ ' + texto, 'muted');
-
-      if (!cmd) return;
-
-      if (!comandos[cmd]) {
-        appendLine('Comando não encontrado: ' + cmd + '. Digite "ajuda".', 'error');
-        return;
-      }
-
-      comandos[cmd]();
-    }
-
-    form.addEventListener('submit', (event) => {
-      event.preventDefault();
-      executar(input.value);
-      input.value = '';
+  navButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const cmd = btn.dataset.cmd;
+      execCommand(cmd);
       input.focus();
     });
+  });
 
-    document.querySelectorAll('.nav-btn').forEach((button) => {
-      button.addEventListener('click', () => {
-        const cmd = button.dataset.cmd;
-        executar(cmd);
-        input.focus();
-      });
-    });
+  input.addEventListener('keydown', (ev) => {
+    if(ev.key === 'Tab'){
+      ev.preventDefault();
+      const suggestions = Object.keys(COMMANDS);
+      const val = input.value.trim().toLowerCase();
+      const found = suggestions.find(s => s.startsWith(val));
+      if(found) input.value = found;
+    }
+  });
 
-    input.addEventListener('keydown', (event) => {
-      if (event.key === 'Tab') {
-        event.preventDefault();
-        const sugestões = ['ajuda', 'sobre', 'projetos', 'experiencias', 'contato', 'limpar'];
-        const atual = input.value.trim().toLowerCase();
-        const encontrada = sugestões.find((cmd) => cmd.startsWith(atual));
-        if (encontrada) {
-          input.value = encontrada;
-        }
-      }
-    });
+  terminal.addEventListener('click', () => input.focus());
 
-    terminal.addEventListener('click', () => input.focus());
-    appendLine('Digite "ajuda" para ver os comandos.', 'dim');
-  </script>
-</body>
-</html>
+  // inicialização da cor salva
+  (function initColor(){
+    const saved = tryLoadColor();
+    const color = saved || DEFAULT_COLOR;
+    applyAccent(color);
+  })();
+
+  appendLine('Digite "ajuda" para ver os comandos.', 'dim');
+})();

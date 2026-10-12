@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Eduardo Augusto | Portfólio</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="term-header">
+    <div class="container term-header-inner">
+      <div class="brand">eduardo@portfolio:~$</div>
+      <nav class="mini-nav" aria-label="Comandos rápidos">
+        <button class="nav-btn" data-cmd="sobre">sobre</button>
+        <button class="nav-btn" data-cmd="projetos">projetos</button>
+        <button class="nav-btn" data-cmd="experiencias">experiencias</button>
+        <button class="nav-btn" data-cmd="certificados">certificados</button>
+        <button class="nav-btn" data-cmd="contato">contato</button>
+        <button class="nav-btn" data-cmd="aparencia">aparência</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="terminal" id="terminal">
+    <div class="container">
+      <div class="line dim">Portfólio de Eduardo Augusto Freitas Nogueira</div>
+      <div class="line dim">Digite <span class="highlight">ajuda</span> para ver os comandos.</div>
+
+      <div id="output" class="output" aria-live="polite"></div>
+
+      <form id="cli" class="cmdline" autocomplete="off" role="search" aria-label="Terminal de comandos">
+        <label for="input" class="prompt">eduardo@portfolio:~$</label>
+        <div class="input-wrap">
+          <input id="input" name="input" type="text" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off" aria-label="Digite um comando">
+          <span class="cursor" aria-hidden="true"></span>
+        </div>
+      </form>
+
+      <div class="site-footer">© Eduardo Augusto — Ciência da Computação, PUC Minas</div>
+    </div>
+  </main>
+
+  <script src="script.js" defer></script>
+</body>
+</html>
